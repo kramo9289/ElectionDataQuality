@@ -21,6 +21,8 @@ public class Precincts {
     private String statefp;
     private String countyname;
     private String districtid;
+    private Demographics demographic;
+    private List<Elections> elections;
     //need to add neighbors and errors like in repo
  
     public Precincts(){
@@ -32,6 +34,19 @@ public class Precincts {
         this.shape_geojson=shape_geojson;
         this.name=name;
     }
+
+    //establish relationship of demographics and elections tables
+    @OneToOne(cascade=CascadeType.ALL,mappedBy="precinct")
+    @JsonManagedReference 
+    public Demographics getDemographic(){
+        return demographic;
+    }
+    
+    @OneToMany(cascade=CascadeType.ALL,mappedBy="precinct",orphanRemoval=true)
+    public List<Elections> getElections(){
+        return elections;
+    }
+    
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -96,5 +111,16 @@ public class Precincts {
     public void setDistrictid(String districtid) {
         this.districtid = districtid;
     }
+
+    //added demographic and elections setters
+    public void setDemographic(Demographics demographic) {
+        this.demographic = demographic;
+    }
+
+    public void setElections(List<Elections> elections) {
+        this.elections = elections;
+    }
+
+    //need errors
 
 }
