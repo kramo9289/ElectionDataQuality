@@ -23,6 +23,9 @@ public class Precincts {
     private String districtid;
     private Demographics demographic;
     private List<Elections> elections;
+    private List<Neighbors> neighbors;
+    private List<Neighbors> secondNeighbor;
+    private Errors error;
     //need to add neighbors and errors like in repo
  
     public Precincts(){
@@ -33,6 +36,12 @@ public class Precincts {
         this.statefp=statefp;
         this.shape_geojson=shape_geojson;
         this.name=name;
+    }
+
+    @OneToOne(cascade=CascadeType.ALL,mappedBy="precinct")
+    @JsonManagedReference 
+    public Errors getError(){
+        return error;
     }
 
     //establish relationship of demographics and elections tables
@@ -47,13 +56,23 @@ public class Precincts {
         return elections;
     }
     
+    @OneToMany(fetch=FetchType.LAZY,cascade=CascadeType.ALL,mappedBy="firstPrecinct")
+    public List<Neighbors> getNeighbors(){
+        return neighbors;
+    }
+    
+    @OneToMany(fetch=FetchType.LAZY,cascade=CascadeType.ALL,mappedBy="secondPrecinct")
+    @JsonBackReference 
+    public List<Neighbors> getSecondNeighbor(){
+        return secondNeighbor;
+    }   
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     public Integer getId(){
         return id;
     }
-    
+
     @Column(name="origname")
     public String getOrigname(){
         return origname;
@@ -121,6 +140,16 @@ public class Precincts {
         this.elections = elections;
     }
 
-    //need errors
+    public void setError(Errors error) {
+        this.error = error;
+    }
+    
+    public void setNeighbors(List<Neighbors> neighbors) {
+        this.neighbors = neighbors;
+    }
+
+    public void setSecondNeighbor(List<Neighbors> secondNeighbor) {
+        this.secondNeighbor = secondNeighbor;
+    }
 
 }
