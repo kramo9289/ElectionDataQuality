@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<!--
+Author: Stanley Ren and Kevin Ramos
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html style="border: solid black;">
+    <head>
+        <title>State Election and Demographic Data</title>
+    </head>
+    <body style="font-family:Helvetica">
+        <div>
+                <div style="visibility: hidden; float:left; width: 42.5%">_</div>
+                <div style="font-size: 40px; float:left;">Election Data Quality</div>
+                <div style="visibility: hidden; float:right;">_</div>
+                <input style="border: solid black;padding-right:15px; padding-left:15px; float:right;" type ="image" src="cog.png" alt="Settings" class="nicebuttons" >
+                <input style="border: solid black;padding-right:15px;padding-left:15px; float:right;" type ="image" src="checklist.png" alt="Settings" class="nicebuttons" >
+                <input style="border: solid black;padding-right:15px; padding-left:15px; float:right;" type ="image" src="ee.png" alt="Errors" class="nicebuttons" >
+                
+        </div>
+        
+        <div class="split left">
+            <div class="centered1">
+                <h2>Location</h2>
+                <div style=" padding-bottom:10px">
+                    <label for="States" style="font-size: 17px;padding-right: 26px">State:</label>
+                    <select id="States" onchange="loadFeature()"> <!-- needs to be replaced by data from DB -->
+                        <option value="State" >States</option>
+                    </select>
+                </div>
+                <div id="searchWindow">
+                    <input id="precinctSearch" type="text" placeholder="Search for Precinct">
+                    <button >Submit Search</button>
+                    <div id="searchResults"></div>
+                </div>
+                <br/>
+                <div>
+                    Selected Precinct: <br/>
+                    <h3 id="selectedPrecinct"></h3>
+                </div>
+            </div>
+            <div style=" border-bottom:solid black;"></div>
+            <div class="centered2">
+                <h2>Information</h2>
+                
+                <label id="totVotePop"> X people</label>
+                <table cellpadding="0">
+                    <tr>
+                        <td><label for="dataSection">Data Type:</label></td>
+                        <td>
+                            <select id="dataSection" onchange="switchDataSection();changeAllColor()" style="">
+                                <option value="none" selected>None</option>
+                                <option value="election">Election</option>
+                                <option value="demographic">Demographic</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr id="electionDropdownArea" style="display:none">
+                        <td><label for="year">Election Type:</label></td>
+                        <td>
+                            <select id="year" onchange="setElectionSection();changeAllColor()" style="">
+                                <option id="noElection" value="none" selected>None</option>
+                                <option id="pres16" value="pres16">Presidential 2016</option>
+                                <option id="cong16" value="cong16">Congressional 2016</option>
+                                <option id="cong18" value="cong18">Congressional 2018</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+                <br><br>
+                <div id="electionSection">
+                    <label>Democratic: </label><span id="demNum" style="float:right;padding-right:25px">X people [X%]</span><br/>
+                    <label>Republican: </label><span id="repNum" style="float:right;padding-right:25px">Y people [Y%]</span><br/>
+                    <label style="padding-right: 43px">Other:</label><span id="othNum" style="float:right;padding-right:25px">Z people [Z%]</span>
+                    <br>
+                </div>
+                <div id="demographicSection">
+                    <label>American Indian: </label><span id="aminNum" style="float:right;padding-right:25px">X</span><br/>
+                    <label>Asian: </label><span id="asianNum" style="float:right;padding-right:25px">Y</span><br/>
+                    <label>Black: </label><span id="blackNum" style="float:right;padding-right:25px">X</span><br/>
+                    <label>Hawaii: </label><span id="hawaiiNum" style="float:right;padding-right:25px">X</span><br/>
+                    <label>Hispanic: </label><span id="hispanicNum" style="float:right;padding-right:25px">Y</span><br/>
+                    <label>White: </label><span id="whiteNum" style="float:right;padding-right:25px">X</span><br/>
+                    <label>Other: </label><span id="otherNum" style="float:right;padding-right:25px">Y</span>
+                </div>
+            </div>
+            <div style=" border-bottom:solid black;"></div>
+            <div class="centered3">
+                <div id="errorSection" style="display:none">
+                    <h2>Error Type</h2>
+                    <div id="currentError">
+                        <div id="ghostSection" style="display:none">
+                            Ghost Precinct?<br/>
+                            <button >Yes</button><br/>
+                            <button >Set Data</button>
+                        </div>
+                        <div id="votAnomSection" style="display:none">
+                            Voting Anomaly<br/>
+                            <button >Set Data</button>
+                            <button >Set As Not an Error</button><br>
+                        </div>
+                        <div id="demAnomSection" style="display:none">
+                            Demographic Anomaly<br/>
+                            <button >Set Data</button>
+                            <button >Set As Not an Error</button><br>
+                        </div>
+                        <div id="mergeSection" style="display:none">
+                            Enclosed Precinct<br/>
+                            <button  Section</button>
+                            <button >Set As Not an Error</button><br>
+                        </div>
+                        <div id="multiSection" style="display:none">
+                            Multi-polygon<br/>
+                            <button >Not an Error</button>
+                        </div>
+                        <div id="gapIntersectSection" style="display:none">
+                            Precinct Gap/Intersection<br/>
+                            <button class="editBorderButton" >Edit Border</button>
+                            <button >Set As Not an Error</button><br>
+                        </div>
+                    </div>
+                    <br>
+                    <label for="commentArea">Comments:</label><br>
+                    <textarea placeholder="Type your comment for the resolved error" id="commentArea" name="commentArea" rows="2" cols="20"></textarea>
+                </div>
+                <div id="optionSection">
+                    <h2>Options</h2>
+                    <button >Change Data</button><br>
+                    <button id="neighborButton" >Edit Neighbors</button><br>
+                    <button id="mergeButton" >Open Merge Precincts Section</button><br>
+                    <button  class="editBorderButton" >Edit Border</button><br>           
+                    <br>
+                </div>
+                <div id="neighborSection" style="display:none">
+                    <h4>Edit Neighbors</h4>
+                    Second Selected Precinct: <div id="selectedNeighbor"></div>
+                    <button >Add Neighbors</button>
+                    <button >Delete Neighbors</button>
+                </div>
+                <div id="mergingSection" style="display:none">
+                    <h4>Merge Selected Precincts</h4>
+                    Second Selected Precinct: <div id="selectedMerger"></div>
+                    <button >Merge Precincts</button>
+                </div>
+                <br>
+                <br>
+                <div style="text-align: center; padding-right: 45px"><button style="background-color:#e6ffff;color: black;padding: 5px 10px; font-size: 16px; cursor: pointer;" >Load Precinct Errors</button></div>
+                <br>
+            </div>
+            <div style=" border-bottom:solid black;"></div>
+            <div class="centered4">
+                <h2 style="padding-top: 20px">Sources</h2>
+                State Shapes: <span id="stateSource"></span><br/>
+                District Shapes: <span id="districtSource"></span><br/>
+                Precinct Shapes: <span id="precinctSource"></span><br/>
+                Precinct Voting Data: <span id="votingSource"></span><br/>
+                Precinct Demographic Data: <span id="demSource"></span>
+            </div>
+        </div>
+        <!-- right side of the page -->
+        <div class="right">
+            <div id="forMap">
+            </div>
+        </div>
+        
+        <!-- this is popup window for changing data info -->
+        <div id="changeDataSection" class="modal">
+            <div class="modal-content">
+                <button >X</button>
+                <p style="text-align: center"><b>Changes</b></p>
+                <p>Precinct's election and demographic must be loaded using the dropdown menu in order to update anything.</p>
+                <label for="precinctName" style="margin-left: 180px">Name:</label>
+                <input type="text" id="precinctName" name="precinctName"><br>
+                <table>
+                    <tr>
+                        <td style="padding-right: 30px;">
+                            <p><b>2016 Presidential Election:</b></p>
+                            <label for="pres16Dem" style="padding-right: 10px">Democrats:</label>
+                            <input id="pres16Dem" name="pres16Dem" value="0"><br><br>
+                            <label for="pres16Rep">Republicans:</label>
+                            <input id="pres16Rep" name="pres16Rep" value="0"><br><br>
+                            <label for="pres16Other" style="padding-right: 43px">Other:</label>
+                            <input id="pres16Other" name="pres16Other" value="0"><br><br>
+                            <p><b>2016 Congressional Election:</b></p>
+                            <label for="cong16Dem" style="padding-right: 10px">Democrats:</label>
+                            <input id="cong16Dem" name="cong16Dem" value="0"><br><br>
+                            <label for="cong16Rep">Republicans:</label>
+                            <input id="cong16Rep" name="cong16Rep" value="0"><br><br>
+                            <label for="cong16Other" style="padding-right: 43px">Other:</label>
+                            <input id="cong16Other" name="cong16Other" value="0"><br><br>
+                            <p><b>2018 Congressional Election:</b></p>
+                            <label for="cong18Dem" style="padding-right: 10px">Democrats:</label>
+                            <input id="cong18Dem" name="cong18Dem" value="0"><br><br>
+                            <label for="cong18Rep">Republicans:</label>
+                            <input  id="cong18Rep" name="cong18Rep" value="0"><br><br>
+                            <label for="cong18Other" style="padding-right: 43px">Other:</label>
+                            <input id="cong18Other" name="cong18Other" value="0"><br><br>
+                        </td>
+                        <td>
+                            <p><b>Demographic Data:</b></p>
+                            <label for="whiteVotePop" style="padding-right: 20px">White:</label>
+                            <input id="whiteVotePop" name="whiteVotePop" value="0"><br><br>
+                            <label for="blackVotePop" style="padding-right: 20px">Black:</label>
+                            <input id="blackVotePop" name="blackVotePop" value="0"><br><br>
+                            <label for="asianVotePop" style="padding-right: 20px">Asian:</label>
+                            <input id="asianVotePop" name="asianVotePop" value="0"><br><br>
+                            <label for="hispanicVotePop" style="padding-right: 20px">Hispanic:</label>
+                            <input id="hispanicVotePop" name="hispanicVotePop" value="0"><br><br>
+                            <label for="hawaiiVotePop" style="padding-right: 20px">Hawaii:</label>
+                            <input id="hawaiiVotePop" name="hawaiiVotePop" value="0"><br><br>
+                            <label for="aminVotePop" style="padding-right: 20px">American Indian:</label>
+                            <input id="aminVotePop" name="aminVotePop" value="0"><br><br>
+                            <label for="otherVotePop" style="padding-right: 20px">Other:</label>
+                            <input id="otherVotePop" name="otherVotePop" value="0"><br><br>
+                        </td>
+                    </tr>
+                </table>
+                
+                <center><button id="saveButton" >Save</button></center>
+            </div>
+        </div>
+        <!-- shows log of what user has done -->
+        <div id="errorPopup" class="modal">
+            <div class="modal-content">
+                <button >X</button>
+                <h1>Error Log</h1>
+                <br><br>
+                <div class="errorTabs" id="errorLog">
+                    <button class="errorButton" >Ghost Precincts</button>
+                    <button class="errorButton" >Voting Anomalies</button>
+                    <button class="errorButton" >Demographic Anomalies</button>
+                    <button class="errorButton" >Enclosed Precincts</button>
+                    <button class="errorButton" >Multipolygon Precincts</button>
+                    <button class="errorButton" >Gaps</button>
+                    <button class="errorButton" >Intersections</button>
+                </div>
+                <div class="tab" id="GHOST"></div>
+                <div class="tab" id="VOTANOM"></div>
+                <div class="tab" id="DEMANOM"></div>
+                <div class="tab" id="ENCLOSED"></div>
+                <div class="tab" id="MULTI"></div>
+                <div class="tab" id="GAP"></div>
+                <div class="tab" id="INTERSECT"></div>
+            </div>
+        </div>
+        <div id="fixedErrorPopup" class="modal">
+            <div class="modal-content">
+                <button >X</button>
+                <h4>Log of Fixed Error</h4>
+                <br><br>
+                <div id="fixedErrorLog">
+                </div>
+            </div>
+        </div>
+        <div id="settingsPopup" class="modal">
+            <div class="modal-content">
+                <button >X</button>
+                <h4>Settings</h4>
+                <br>
+                <div>Map View Filter</div>
+                <form id="mapFilter">
+                    <input type ="checkbox" id="congressionalFilter" value="congressional">
+                    <label for="congressional">Congressional Data</label><br/>
+                    <input type ="checkbox" id="nationalParkFilter" value="national">
+                    <label for="congrenationalssional">National Park Data</label><br/>
+                    <input type ="checkbox" onchange="loadFeature()" id="precinctFilter" value="precinct" checked>
+                    <label for="precinct">Precincts</label>
+                </form>
+                <br/><br/>
+                <table>
+                    <tr> <td colspan="2">Election Data Color Change </td></tr>
+                    <tr>
+                        <td><label>Democrat: </label></td>
+                        <td><input type="color" id="demColor" onchange="changeAllColor();" name="demColor" value="#0066ff"></td>
+                    </tr>
+                    <tr>
+                        <td><label>Republican: </label></td>
+                        <td><input type="color" id="repColor" onchange="changeAllColor()" name="repCcolor" value="#ff0000"></td>
+                    </tr>
+                    <tr>
+                        <td><label>Other: </label></td>
+                        <td><input type="color" id="otherColor" onchange="changeAllColor()" name="otherColor" value="#33cc33"></td>
+                    </tr>
+                    
+                    <tr><td colspan="2"><br/>Demographic Data Color Change </td></tr>
+                    <tr>
+                        <td><label>White: </label></td>
+                        <td><input type="color" id="whiteColor" onchange="changeAllColor()" name="whiteColor" value="#d2b58c"></td>
+                    </tr>
+                    <tr> 
+                        <td><label>Black: </label></td>
+                        <td><input type="color" id="blackColor" onchange="changeAllColor()" name="blackColor" value="#624a2e"></td>
+                    </tr>
+                    <tr> 
+                        <td><label>Asian: </label></td>
+                        <td><input type="color" id="asianColor" onchange="changeAllColor()" name="asianColor" value="#f3e789"></td>
+                    </tr>
+                    <tr> 
+                        <td><label>Hispanic: </label></td>
+                        <td><input type="color" id="hisColor" onchange="changeAllColor()" name="hisColor" value="#6a0dad"></td>
+                    </tr>
+                    <tr> 
+                        <td><label>American Indian: </label></td>
+                        <td><input type="color" id="aminColor" onchange="changeAllColor()" name="hisColor" value="#d40c00"></td>
+                    </tr>
+                    <tr> 
+                        <td><label>Hawaii: </label></td>
+                        <td><input type="color" id="hawaiiColor" onchange="changeAllColor()" name="hisColor" value="#87c735"></td>
+                    </tr>
+                    <tr> 
+                        <td><label>Other: </label></td>
+                        <td><input type="color" id="restColor" onchange="changeAllColor()" name="restColor" value="#8affff"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
