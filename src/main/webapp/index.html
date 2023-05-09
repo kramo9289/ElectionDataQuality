@@ -8,15 +8,27 @@ and open the template in the editor.
 <html style="border: solid black;">
     <head>
         <title>State Election and Demographic Data</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="newcss.css">
+        <script src='https://unpkg.com/@turf/turf/turf.min.js'></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+              integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="crossorigin=""/>
+        <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+        <script language="javascript" type="text/javascript" src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+                integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="crossorigin="">
+        </script>
+        <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
     </head>
-    <body style="font-family:Helvetica">
+    <body style="font-family:Helvetica" onload="initLoad()">
         <div>
                 <div style="visibility: hidden; float:left; width: 42.5%">_</div>
                 <div style="font-size: 40px; float:left;">Election Data Quality</div>
                 <div style="visibility: hidden; float:right;">_</div>
-                <input style="border: solid black;padding-right:15px; padding-left:15px; float:right;" type ="image" src="cog.png" alt="Settings" class="nicebuttons" >
-                <input style="border: solid black;padding-right:15px;padding-left:15px; float:right;" type ="image" src="checklist.png" alt="Settings" class="nicebuttons" >
-                <input style="border: solid black;padding-right:15px; padding-left:15px; float:right;" type ="image" src="ee.png" alt="Errors" class="nicebuttons" >
+                <input style="border: solid black;padding-right:15px; padding-left:15px; float:right;" type ="image" src="cog.png" alt="Settings" class="nicebuttons" onclick="document.getElementById('settingsPopup').style.display='block'">
+                <input style="border: solid black;padding-right:15px;padding-left:15px; float:right;" type ="image" src="checklist.png" alt="Settings" class="nicebuttons" onclick="getAllFixedErrors();document.getElementById('fixedErrorPopup').style.display='block'">
+                <input style="border: solid black;padding-right:15px; padding-left:15px; float:right;" type ="image" src="ee.png" alt="Errors" class="nicebuttons" onclick="getAllErrors();document.getElementById('errorPopup').style.display='block'">
                 
         </div>
         
@@ -26,12 +38,12 @@ and open the template in the editor.
                 <div style=" padding-bottom:10px">
                     <label for="States" style="font-size: 17px;padding-right: 26px">State:</label>
                     <select id="States" onchange="loadFeature()"> <!-- needs to be replaced by data from DB -->
-                        <option value="State" >States</option>
+                        <option value="State" onclick="">States</option>
                     </select>
                 </div>
                 <div id="searchWindow">
                     <input id="precinctSearch" type="text" placeholder="Search for Precinct">
-                    <button >Submit Search</button>
+                    <button onclick="findPrecincts()">Submit Search</button>
                     <div id="searchResults"></div>
                 </div>
                 <br/>
@@ -92,32 +104,32 @@ and open the template in the editor.
                     <div id="currentError">
                         <div id="ghostSection" style="display:none">
                             Ghost Precinct?<br/>
-                            <button >Yes</button><br/>
-                            <button >Set Data</button>
+                            <button onclick="setNotError()">Yes</button><br/>
+                            <button onclick="openChangeDataSection()">Set Data</button>
                         </div>
                         <div id="votAnomSection" style="display:none">
                             Voting Anomaly<br/>
-                            <button >Set Data</button>
-                            <button >Set As Not an Error</button><br>
+                            <button onclick="openChangeDataSection()">Set Data</button>
+                            <button onclick="setNotError()">Set As Not an Error</button><br>
                         </div>
                         <div id="demAnomSection" style="display:none">
                             Demographic Anomaly<br/>
-                            <button >Set Data</button>
-                            <button >Set As Not an Error</button><br>
+                            <button onclick="openChangeDataSection()">Set Data</button>
+                            <button onclick="setNotError()">Set As Not an Error</button><br>
                         </div>
                         <div id="mergeSection" style="display:none">
                             Enclosed Precinct<br/>
-                            <button  Section</button>
-                            <button >Set As Not an Error</button><br>
+                            <button onclick="openMergingSection()">Open "Merge Precincts" Section</button>
+                            <button onclick="setNotError()">Set As Not an Error</button><br>
                         </div>
                         <div id="multiSection" style="display:none">
                             Multi-polygon<br/>
-                            <button >Not an Error</button>
+                            <button onclick="setNotError()">Not an Error</button>
                         </div>
                         <div id="gapIntersectSection" style="display:none">
                             Precinct Gap/Intersection<br/>
-                            <button class="editBorderButton" >Edit Border</button>
-                            <button >Set As Not an Error</button><br>
+                            <button class="editBorderButton" onclick="editBorder()">Edit Border</button>
+                            <button onclick="setNotError()">Set As Not an Error</button><br>
                         </div>
                     </div>
                     <br>
@@ -126,26 +138,26 @@ and open the template in the editor.
                 </div>
                 <div id="optionSection">
                     <h2>Options</h2>
-                    <button >Change Data</button><br>
-                    <button id="neighborButton" >Edit Neighbors</button><br>
-                    <button id="mergeButton" >Open Merge Precincts Section</button><br>
-                    <button  class="editBorderButton" >Edit Border</button><br>           
+                    <button onclick="openChangeDataSection()" style="width:auto;">Change Data</button><br>
+                    <button id="neighborButton" onclick="openNeighborSection()">Edit Neighbors</button><br>
+                    <button id="mergeButton" onclick="openMergingSection()">Open "Merge Precincts" Section</button><br>
+                    <button  class="editBorderButton" onclick="editBorder()">Edit Border</button><br>           
                     <br>
                 </div>
                 <div id="neighborSection" style="display:none">
                     <h4>Edit Neighbors</h4>
                     Second Selected Precinct: <div id="selectedNeighbor"></div>
-                    <button >Add Neighbors</button>
-                    <button >Delete Neighbors</button>
+                    <button onclick="addNeighbors()">Add Neighbors</button>
+                    <button onclick="deleteNeighbors()">Delete Neighbors</button>
                 </div>
                 <div id="mergingSection" style="display:none">
                     <h4>Merge Selected Precincts</h4>
                     Second Selected Precinct: <div id="selectedMerger"></div>
-                    <button >Merge Precincts</button>
+                    <button onclick="mergePrecincts()">Merge Precincts</button>
                 </div>
                 <br>
                 <br>
-                <div style="text-align: center; padding-right: 45px"><button style="background-color:#e6ffff;color: black;padding: 5px 10px; font-size: 16px; cursor: pointer;" >Load Precinct Errors</button></div>
+                <div style="text-align: center; padding-right: 45px"><button style="background-color:#e6ffff;color: black;padding: 5px 10px; font-size: 16px; cursor: pointer;" onclick="getAllErrors()">Load Precinct Errors</button></div>
                 <br>
             </div>
             <div style=" border-bottom:solid black;"></div>
@@ -167,7 +179,7 @@ and open the template in the editor.
         <!-- this is popup window for changing data info -->
         <div id="changeDataSection" class="modal">
             <div class="modal-content">
-                <button >X</button>
+                <button onclick="document.getElementById('changeDataSection').style.display='none'" style="float:right;">X</button>
                 <p style="text-align: center"><b>Changes</b></p>
                 <p>Precinct's election and demographic must be loaded using the dropdown menu in order to update anything.</p>
                 <label for="precinctName" style="margin-left: 180px">Name:</label>
@@ -217,23 +229,23 @@ and open the template in the editor.
                     </tr>
                 </table>
                 
-                <center><button id="saveButton" >Save</button></center>
+                <center><button id="saveButton" onclick="changePrecinctData()">Save</button></center>
             </div>
         </div>
         <!-- shows log of what user has done -->
         <div id="errorPopup" class="modal">
             <div class="modal-content">
-                <button >X</button>
+                <button onclick="document.getElementById('errorPopup').style.display='none'" style="float:right;">X</button>
                 <h1>Error Log</h1>
                 <br><br>
                 <div class="errorTabs" id="errorLog">
-                    <button class="errorButton" >Ghost Precincts</button>
-                    <button class="errorButton" >Voting Anomalies</button>
-                    <button class="errorButton" >Demographic Anomalies</button>
-                    <button class="errorButton" >Enclosed Precincts</button>
-                    <button class="errorButton" >Multipolygon Precincts</button>
-                    <button class="errorButton" >Gaps</button>
-                    <button class="errorButton" >Intersections</button>
+                    <button class="errorButton" onclick="openErrorTab(event, 'GHOST')">Ghost Precincts</button>
+                    <button class="errorButton" onclick="openErrorTab(event, 'VOTANOM')">Voting Anomalies</button>
+                    <button class="errorButton" onclick="openErrorTab(event, 'DEMANOM')">Demographic Anomalies</button>
+                    <button class="errorButton" onclick="openErrorTab(event, 'ENCLOSED')">Enclosed Precincts</button>
+                    <button class="errorButton" onclick="openErrorTab(event, 'MULTI')">Multipolygon Precincts</button>
+                    <button class="errorButton" onclick="openErrorTab(event, 'GAP')">Gaps</button>
+                    <button class="errorButton" onclick="openErrorTab(event, 'INTERSECT')">Intersections</button>
                 </div>
                 <div class="tab" id="GHOST"></div>
                 <div class="tab" id="VOTANOM"></div>
@@ -246,7 +258,7 @@ and open the template in the editor.
         </div>
         <div id="fixedErrorPopup" class="modal">
             <div class="modal-content">
-                <button >X</button>
+                <button onclick="document.getElementById('fixedErrorPopup').style.display='none'" style="float:right;">X</button>
                 <h4>Log of Fixed Error</h4>
                 <br><br>
                 <div id="fixedErrorLog">
@@ -255,7 +267,7 @@ and open the template in the editor.
         </div>
         <div id="settingsPopup" class="modal">
             <div class="modal-content">
-                <button >X</button>
+                <button onclick="document.getElementById('settingsPopup').style.display='none'" style="float:right;">X</button>
                 <h4>Settings</h4>
                 <br>
                 <div>Map View Filter</div>
@@ -315,5 +327,1390 @@ and open the template in the editor.
                 </table>
             </div>
         </div>
+        <script>
+            function getAllFixedErrors(){
+                document.getElementById("fixedErrorLog").innerHTML="";
+                let fixedErrorRequest=new XMLHttpRequest();
+                fixedErrorRequest.open('GET','http://localhost:8080/fixederrors');
+                fixedErrorRequest.onload=()=>{
+                    let allPrecinctsWithError=JSON.parse(fixedErrorRequest.response);
+                    for(let i=0;i<allPrecinctsWithError.length;i++){
+                        let fixedError=allPrecinctsWithError[i];
+                        let structuredError="<div> Precinct ID:" +fixedError.precinctID+"</br>Precinct Name: " + fixedError.precinctName + " [Resolved Error: "+ fixedError.errorType+"] <br> ";
+                        structuredError+="Relevant Comment: <"+fixedError.commentTime+"> :"+fixedError.comment+ "</div> </br>";
+                        document.getElementById("fixedErrorLog").innerHTML+=structuredError;
+                    }
+                }
+                    fixedErrorRequest.send();
+            }
+            function getSourcesForState(){
+                document.getElementById("stateSource").innerHTML="";
+                document.getElementById("districtSource").innerHTML="";
+                document.getElementById("precinctSource").innerHTML="";
+                document.getElementById("votingSource").innerHTML="";
+                document.getElementById("demSource").innerHTML="";
+                let stateName=document.getElementById("States").value;
+                if(stateName=="State") return;
+                let statefp=states[stateName].properties.statefp;
+                let sourcesRequest=new XMLHttpRequest();
+                sourcesRequest.open('GET','http://localhost:8080/sources/'+statefp);
+                sourcesRequest.onload=()=>{
+                    if(sourcesRequest.response=="") return;
+                    let sources=JSON.parse(sourcesRequest.response);
+                    document.getElementById("stateSource").innerHTML=sources.state;
+                    document.getElementById("districtSource").innerHTML=sources.district;
+                    document.getElementById("precinctSource").innerHTML=sources.precinct;
+                    document.getElementById("votingSource").innerHTML=sources.voting;
+                    document.getElementById("demSource").innerHTML=sources.demographic;
+                };
+                sourcesRequest.send();
+            }
+            function getAllErrors(){
+                let stateName=document.getElementById("States").value;
+                if(stateName=="State") return;
+                if(checkEmpty(precincts)) return;
+                document.getElementById("optionSection").style.display="";
+                let statefp=states[stateName].properties.statefp;
+                document.getElementById("GHOST").innerHTML="";
+                document.getElementById("VOTANOM").innerHTML="";
+                document.getElementById("DEMANOM").innerHTML="";
+                document.getElementById("ENCLOSED").innerHTML="";
+                document.getElementById("MULTI").innerHTML="";
+                document.getElementById("GAP").innerHTML="";
+                document.getElementById("INTERSECT").innerHTML="";
+                loadErrorsForPrecinct(statefp);
+            }
+            function loadErrorsForPrecinct(statefp){
+                let errorRequest=new XMLHttpRequest();
+                errorRequest.open('GET','http://localhost:8080/precincts/error/'+statefp);
+                errorRequest.onload=()=>{
+                    let allPrecinctsWithError=JSON.parse(errorRequest.response);
+                    for(let i=0;i<allPrecinctsWithError.length;i++){
+                        let precinct=allPrecinctsWithError[i];
+                        if(precincts[precinct.name]!=undefined && precinct.error.errorType!="RESOLVED"){
+                            precincts[precinct.name].feature.properties.error=precinct.error;
+                            putErrorsInLog(precincts[precinct.name].feature);
+                            changeFeatColor(precincts[precinct.name].feature,precincts[precinct.name]);
+                        }
+                    }
+                }
+                errorRequest.send();
+                let errorTabs = document.getElementsByClassName('tab');
+                for(let i=0; i<errorTabs.length; i++){
+                    errorTabs[i].style.display = "none"
+                }
+            }
+            function openErrorTab(event, errorType){
+                let errorTabs = document.getElementsByClassName('tab');
+                for(let i=0; i<errorTabs.length; i++){
+                    errorTabs[i].style.display = "none"
+                }
+                let errorButtons = document.getElementsByClassName('errorButton');
+                for(let j=0; j<errorButtons.length; j++){
+                    errorButtons[j].style.backgroundColor = "inherit"
+                }
+                event.currentTarget.style.backgroundColor = "#aaa"
+                document.getElementById(errorType).style.display = "block";
+            }
+            function putErrorsInLog(feature){
+                let firstPart="<div id=\""+feature.properties.name+"_error\"><button onclick='document.getElementById(\"errorPopup\").style.display=\"none\";precMenuChange(\""+feature.properties.name+"\");'>";
+                let secondPart=" ["+feature.properties.name+"]</button></div>";
+                document.getElementById(feature.properties.error.errorType).innerHTML+=firstPart+secondPart;
+            }	
+            function findPrecincts(){
+                let searchResult=document.getElementById("precinctSearch").value;
+                if(searchResult=="")return;
+                let stateName=document.getElementById("States").value;
+                let statefp=states[stateName].properties.statefp;
+                let searchRequest=new XMLHttpRequest();
+                searchRequest.open('GET','http://localhost:8080/precincts/search/'+searchResult+"/"+statefp);
+                searchRequest.onload=()=> {
+                    let searchData=searchRequest.response;
+                    if(searchData=="")return;
+                    searchData=JSON.parse(searchRequest.response);
+                    document.getElementById("searchResults").innerHTML="";
+                    for(let i=0;i<searchData.length;i++){
+                        if(searchData[i]!=undefined){
+                            let newOption=document.createElement("button");
+                            let name=searchData[i].name;
+                            newOption.onclick=()=>{
+                                changeAllColor()
+                                loadForCong(searchData[i].districtid,statefp,name);
+                                document.getElementById("precinctSearch").value="";
+                                document.getElementById("searchResults").innerHTML="";
+                                document.getElementById("selectedPrecinct").innerHTML=name;
+                            }
+                            newOption.innerHTML=name;
+                            document.getElementById("searchResults").append(newOption);
+                            let linebreak = document.createElement("br");
+                            document.getElementById("searchResults").append(linebreak);
+                        }
+                    }
+                }
+                searchRequest.send();
+            }
+            function openNeighborSection(){
+                let selectedPrecinct=document.getElementById("selectedPrecinct").innerHTML;
+                document.getElementById('precinctName').value = selectedPrecinct;
+                if(selectedPrecinct!=""){
+                    let neighborSection=document.getElementById("neighborSection");
+                    if(neighborSection.style.display=="none"){
+                        disappearMergingSection();
+                        resetEditBorder();
+                        let allEditBorderButtons=document.getElementsByClassName("editBorderButton");
+                        for(let i=0;i<allEditBorderButtons.length;i++){
+                            console.log(allEditBorderButtons);
+                            allEditBorderButtons[i].disabled=true;
+                        }
+                        editingNeighbors=true;
+                        neighborSection.style.display="";
+                    }
+                    else{
+                        disappearNeighborSection();
+                        let allEditBorderButtons=document.getElementsByClassName("editBorderButton");
+                        for(let i=0;i<allEditBorderButtons.length;i++){
+                            allEditBorderButtons[i].disabled=false;
+                        }
+                    }
+                }
+            }
+            function disappearNeighborSection(){
+                editingNeighbors=false;
+                let neighborSection=document.getElementById("neighborSection");
+                neighborSection.style.display="none";
+                let neighboringLayer=precincts[document.getElementById("selectedNeighbor").innerHTML];
+                if(neighboringLayer!=undefined){
+                    neighboringLayer.setStyle(setShapeColor(neighboringLayer,"OLD_PREC_STYLE"));
+                }
+                document.getElementById("selectedNeighbor").innerHTML="";
+            }
+            function openMergingSection(){
+                let selectedPrecinct=document.getElementById("selectedPrecinct").innerHTML;
+                document.getElementById('precinctName').value = selectedPrecinct;
+                if(selectedPrecinct!=""){
+                    let mergingSection=document.getElementById("mergingSection");
+                    if(mergingSection.style.display=="none"){
+                        mergingPrecincts=true;
+                        mergingSection.style.display="";
+                        resetEditBorder();
+                        disappearNeighborSection();
+                        let allEditBorderButtons=document.getElementsByClassName("editBorderButton");
+                        for(let i=0;i<allEditBorderButtons.length;i++){
+                            allEditBorderButtons[i].disabled=true;
+                        }
+                    }
+                    else{
+                        disappearMergingSection();
+                        let allEditBorderButtons=document.getElementsByClassName("editBorderButton");
+                        for(let i=0;i<allEditBorderButtons.length;i++){
+                            allEditBorderButtons[i].disabled=false;
+                        }
+                    }
+                }
+            }
+            function disappearMergingSection(){
+                let mergingSection=document.getElementById("mergingSection");
+                mergingPrecincts=false;
+                mergingSection.style.display="none";
+                let mergingLayer=precincts[document.getElementById("selectedMerger").innerHTML];
+                if(mergingLayer!=undefined){
+                    mergingLayer.setStyle(setShapeColor(mergingLayer,"OLD_PREC_STYLE"));
+                }
+                document.getElementById("selectedMerger").innerHTML="";
+            }
+            function addNeighbors(){
+                let selectedPrecinctName=document.getElementById("selectedPrecinct").innerHTML;
+                let secondPrecinctName=document.getElementById("selectedNeighbor").innerHTML;
+                if(secondPrecinctName=="" || secondPrecinctName==selectedPrecinctName)return;
+                let firstPrecinct=precincts[selectedPrecinctName].feature;
+                let secondPrecinct=precincts[secondPrecinctName].feature;
+                let neighbors=firstPrecinct.properties.neighbors;
+                neighborExist=false;
+                for(let i=0;i<neighbors.length;i++){
+                    let precinctName=neighbors[i].secondPrecinct.name;
+                    let selectedLayer=precincts[precinctName];
+                    if(precincts[precinctName].feature.properties.id==secondPrecinct.properties.id){
+                        neighborExist=true;
+                    }
+                }
+                if(!neighborExist){
+                    sendAddedNeighbor(firstPrecinct,secondPrecinct.properties.id);
+                    disappearNeighborSection();
+                    let allEditBorderButtons=document.getElementsByClassName("editBorderButton");
+                    for(let i=0;i<allEditBorderButtons.length;i++){
+                        allEditBorderButtons[i].disabled=false;
+                    }
+                }
+            }
+            function deleteNeighbors(){
+                let selectedPrecinctName=document.getElementById("selectedPrecinct").innerHTML;
+                let secondPrecinctName=document.getElementById("selectedNeighbor").innerHTML;
+                if(secondPrecinctName=="" || secondPrecinctName==selectedPrecinctName)return;
+                let firstPrecinct=precincts[selectedPrecinctName].feature;
+                let secondPrecinct=precincts[secondPrecinctName].feature;
+                let neighbors=firstPrecinct.properties.neighbors;
+                neighborExist=false;
+                for(let i=0;i<neighbors.length;i++){
+                    let precinctName=neighbors[i].secondPrecinct.name;
+                    let selectedLayer=precincts[precinctName];
+                    if(precincts[precinctName].feature.properties.id==secondPrecinct.properties.id){
+                        neighborExist=true;
+                    }
+                }
+                if(neighborExist){
+                    changeFeatColor(secondPrecinct,precincts[secondPrecinctName]);
+                    sendDeletedNeighbor(firstPrecinct,secondPrecinct.properties.id);
+                    disappearNeighborSection();
+                    let allEditBorderButtons=document.getElementsByClassName("editBorderButton");
+                    for(let i=0;i<allEditBorderButtons.length;i++){
+                        allEditBorderButtons[i].disabled=false;
+                    }
+                }
+    //            let addedNeighbor={};
+    //            addedNeighbor.secondPrecinct=preparePrecinctToSend(secondPrecinct);
+    //            neighbors.push(addedNeighbor);
+                //updatePrecinct(firstPrecinct.properties.id,preparePrecinctToSend(firstPrecinct));
+            }
+            function sendAddedNeighbor(firstFeature,secondID){
+                let addNeighborRequest=new XMLHttpRequest();
+                addNeighborRequest.open('POST','http://localhost:8080/addNeighbors/'+firstFeature.properties.id+"/"+secondID);
+                addNeighborRequest.onload=()=>{
+                    loadNeighbors();
+                };
+                addNeighborRequest.send();
+            }
+            function sendDeletedNeighbor(firstFeature,secondID){
+                let addNeighborRequest=new XMLHttpRequest();
+                addNeighborRequest.open('DELETE','http://localhost:8080/deleteNeighbors/'+firstFeature.properties.id+"/"+secondID);
+                addNeighborRequest.onload=()=>{
+                    loadNeighbors();
+                };
+                addNeighborRequest.send();
+            }
+            function openChangeDataSection(){
+                let selectedPrecinct=document.getElementById("selectedPrecinct").innerHTML;
+                document.getElementById('precinctName').value = selectedPrecinct;
+                if(selectedPrecinct!=""){
+                    document.getElementById('changeDataSection').style.display='block';
+
+                    let selectedLayer=precincts[selectedPrecinct];
+                    let selectedFeature=selectedLayer.feature;
+                    populateDemographicData(selectedFeature);
+                    populateElectionData(selectedFeature);
+                }
+
+            }
+            function addCommas(num) {
+                return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }
+            function removeCommas(numString){
+                return parseInt(numString.replace(/,/g,""));
+            }
+            function populateElectionData(selectedFeature){
+                let elections=selectedFeature.properties.election;
+                let pres16=[];
+                let cong16=[];
+                let cong18=[];
+                for(let i=0;i<elections.length;i++){
+                    if(elections[i].type=="PRES" && elections[i].year=="2016"){
+                        pres16=elections[i];
+                    }
+                    if(elections[i].type=="CONG" && elections[i].year=="2016"){
+                        cong16=elections[i];
+                    }
+                    if(elections[i].type=="CONG" && elections[i].year=="2018"){
+                        cong18=elections[i];
+                    }
+                }
+                document.getElementById("pres16Dem").value=addCommas(pres16.dem);
+                document.getElementById("pres16Rep").value=addCommas(pres16.rep);
+                document.getElementById("pres16Other").value=addCommas(pres16.other);
+                document.getElementById("cong16Dem").value=addCommas(cong16.dem);
+                document.getElementById("cong16Rep").value=addCommas(cong16.rep);
+                document.getElementById("cong16Other").value=addCommas(cong16.other);
+                document.getElementById("cong18Dem").value=addCommas(cong18.dem);
+                document.getElementById("cong18Rep").value=addCommas(cong18.rep);
+                document.getElementById("cong18Other").value=addCommas(cong18.other);
+            }
+            function populateDemographicData(selectedFeature){
+                document.getElementById("whiteVotePop").value=addCommas(Math.floor(selectedFeature.properties.demographic.whiteov18));
+                document.getElementById("blackVotePop").value=addCommas(Math.floor(selectedFeature.properties.demographic.blackov18));
+                document.getElementById("asianVotePop").value=addCommas(Math.floor(selectedFeature.properties.demographic.asianov18));
+                document.getElementById("hispanicVotePop").value=addCommas(Math.floor(selectedFeature.properties.demographic.hisov18));
+                document.getElementById("aminVotePop").value=addCommas(Math.floor(selectedFeature.properties.demographic.aminov18));
+                document.getElementById("hawaiiVotePop").value=addCommas(Math.floor(selectedFeature.properties.demographic.hawov18));
+                document.getElementById("otherVotePop").value=addCommas(Math.floor(selectedFeature.properties.demographic.otherov18));
+            }
+            function switchDataSection(){
+                if(document.getElementById("dataSection").value == "election"){
+                    document.getElementById("electionDropdownArea").style.display="";
+                    document.getElementById('electionSection').style.display = "block";
+                    document.getElementById('demographicSection').style.display = "none";
+                    setElectionSection();
+                }
+                if(document.getElementById("dataSection").value == "demographic"){
+                    document.getElementById("electionDropdownArea").style.display="none";
+                    document.getElementById('electionSection').style.display = "none";
+                    document.getElementById('demographicSection').style.display = "block";
+                    setDemographicSection();
+                }
+                if(document.getElementById("dataSection").value == "none"){
+                    document.getElementById("electionDropdownArea").style.display="none";
+                    document.getElementById('electionSection').style.display = "none";
+                    document.getElementById('demographicSection').style.display = "none";
+                    document.getElementById("totVotePop").innerHTML="N/A";
+                }
+            }
+            function zoomOut(){
+                let usaCoords=[39.436192999314095,-98.26171875];
+                let usaZoomLevel=4;
+                mymap.setView(usaCoords, usaZoomLevel);
+            }
+            function initLoad(){
+                //L is an object that represents the library and its functions that are available.
+                mymap = L.map('forMap',{
+                    renderer:L.canvas()
+                });
+                zoomOut();
+                L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors,\n\
+                            <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                id: 'mapbox/streets-v11',
+                accessToken: 'pk.eyJ1Ijoia3JhbW85Mjg5IiwiYSI6ImNrZ2sxeXRrcjBkN20yeXFwcHF1MTRkaGsifQ.zniStpd27m0XJlTKWpeoIQ'}).addTo(mymap);
+                precinctLayer=L.geoJSON(null,{onEachFeature: onEachPrecinct}).addTo(mymap);
+                stateLayer=L.geoJSON(null,{onEachFeature: onEachState}).addTo(mymap);
+                congLayer=L.geoJSON(null,{onEachFeature: onEachCong}).addTo(mymap);
+                states={};
+                statesCache={};
+                congs={};
+                loadFeature();
+            }
+            function loadFeature(){
+                let statesMenu = document.getElementById("States");
+                let stateName=statesMenu.value;
+                //0 is rhodeisland,1 is north carolina, 2 is arizona
+                let stateCoords={"Rhode Island":[41.5801,-71.4774],"North Carolina":[35.6200,-79.9451],"Maryland":[38.9531,-77.4565]};
+                let zoomLevel={"Rhode Island":9.5,"North Carolina":7.5,"Maryland":8.5};
+                unloadAll();
+                let precinctFilter=document.getElementById("precinctFilter").checked;
+                switch(stateName){
+                    case "State":
+                        if(checkEmpty(states)){
+                            statesMenu.innerHTML="<option value='State'>State</option>";
+                            loadStatesForMap(stateName);
+                        }
+                        document.getElementById("searchWindow").style.display="none";
+                        zoomOut();
+                        break;
+                    default:
+                        getSourcesForState();
+                        let stateFP=states[stateName].properties.statefp;
+                        mymap.setView(stateCoords[stateName], zoomLevel[stateName]);
+                        if(checkEmpty(statesCache[stateFP])){
+                            loadCongForState(stateFP);
+                        }
+                        else{
+                            for(let i in statesCache[stateFP]){
+                                congLayer.addData(statesCache[stateFP][i][0]);
+                                if(precinctFilter && statesCache[stateFP][i].length>1) {
+                                    loadForCong(statesCache[stateFP][i][0].properties.congid,stateFP);
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+            function checkEmpty(dict){
+                for(let i in dict){
+                    return false;
+                }
+                return true;
+            }
+            function unloadAll(){
+                secondSelectedPrecinctName="";
+                editingNeighbors=false;
+                mergingPrecincts=false;
+                editingBorder=false;
+                document.getElementById("errorSection").style.display="none";
+                document.getElementById("optionSection").style.display="none";
+                document.getElementById("neighborSection").style.display="none";
+                document.getElementById("mergingSection").style.display="none";
+                precinctLayer.clearLayers();
+                congLayer.clearLayers();
+                precincts={};
+                errors={};
+                clearBothSections();
+                document.getElementById("selectedPrecinct").innerHTML="";
+                document.getElementById("GHOST").innerHTML="";
+                document.getElementById("VOTANOM").innerHTML="";
+                document.getElementById("DEMANOM").innerHTML="";
+                document.getElementById("ENCLOSED").innerHTML="";
+                document.getElementById("MULTI").innerHTML="";
+                document.getElementById("GAP").innerHTML="";
+                document.getElementById("INTERSECT").innerHTML="";
+                document.getElementById("searchWindow").style.display="inline";
+                document.getElementById("dataSection").selectedIndex=0;
+                document.getElementById("year").selectedIndex=0;
+                document.getElementById("searchResults").innerHTML="";
+                document.getElementById("precinctSearch").value="";
+            }
+            function loadCongForState(stateFP){
+                statesCache[stateFP]={};
+                let congRequest=new XMLHttpRequest();
+                congRequest.open('GET','http://localhost:8080/cong/'+stateFP);
+                congRequest.onload=()=>{
+                    let congData=JSON.parse(congRequest.response);
+                    for(i=0;i<congData.length;i++){
+                        let cong=prepareCongToUse(congData[i]);
+                        congLayer.addData(cong);
+                        congs[cong.properties.congid]=cong;
+                        statesCache[stateFP][cong.properties.congid]=[];
+                        statesCache[stateFP][cong.properties.congid].push(cong);
+                    }
+                };
+                congRequest.send();
+            }
+            function prepareCongToUse(cong){
+                let congShape=JSON.parse(cong["shape_geojson"]);
+                let newCong={};
+                newCong["type"]="Feature";
+                newCong["properties"]={};
+                newCong.properties["statefp"]=cong["statefp"];
+                newCong.properties["congid"]=cong["congid"];
+                newCong.properties["id"]=cong["id"];
+                newCong["geometry"]={};
+                newCong.geometry["type"]=congShape["type"];
+                newCong.geometry["coordinates"]=congShape["coordinates"];
+                return newCong;
+            }
+            function loadStatesForMap(stateName){
+                let statesRequest=new XMLHttpRequest();
+                statesRequest.open('GET','http://localhost:8080/states');
+                statesRequest.onload=()=>{
+                    let statesData=JSON.parse(statesRequest.response);
+                    for(i=0;i<statesData.length;i++){
+                        let state=prepareStateToUse(statesData[i]);
+                        stateLayer.addData(state);
+                        states[state.properties.name]=state;
+                    }
+                    loadStateNames();
+                };
+                statesRequest.send();
+            }
+            function loadStateNames(){
+                let statesMenu = document.getElementById("States");
+                let eachLayer=(singleLayer)=>{
+                    let feature=singleLayer.feature;
+                    let addedState = document.createElement("option");
+                    addedState.text = feature.properties.name;
+                    addedState.value = feature.properties.name;
+                    statesMenu.options.add(addedState);
+                }
+                stateLayer.eachLayer(eachLayer);
+            }
+            function loadPrecinctsForCong(stateFP,congid,name){
+                let countiesRequest=new XMLHttpRequest();
+                countiesRequest.open('GET','http://localhost:8080/precincts/counties/'+stateFP+"/"+congid);
+                countiesRequest.onload=()=>{
+                    let countiesData=JSON.parse(countiesRequest.response);
+                    let called=false;
+                    for(let i=0;i<countiesData.length;i++){
+                        let precinctsRequest=new XMLHttpRequest();
+                        precinctsRequest.open('GET','http://localhost:8080/precincts/'+stateFP+"/"+congid+"/"+countiesData[i]);
+                        precinctsRequest.onload=()=> {
+                            let precinctsData=JSON.parse(precinctsRequest.response);
+                            for(i=0;i<precinctsData.length;i++){
+                                let preparedFeature=preparePrecinctToUse(precinctsData[i]);
+                                precinctLayer.addData(preparedFeature);
+                                statesCache[stateFP][congid].push(preparedFeature);
+                            }
+                            loadPrecinctDictionary();
+                            if(precincts[name]!=undefined && !called){
+                                precMenuChange(name);
+                                called=true;
+                            }
+                        }
+                        precinctsRequest.send();
+                    }
+                }
+                countiesRequest.send();
+            }
+            function loadNeighborsForPrecinct(precinctFeature){
+                let promise = new Promise((resolve,reject)=>{
+                    let neighborRequest=new XMLHttpRequest();
+                    neighborRequest.open('GET','http://localhost:8080/precincts/neighbors/'+precinctFeature.properties.id);
+                    neighborRequest.onload=()=>{
+                        resolve(JSON.parse(neighborRequest.response));
+                    }
+                    neighborRequest.send();
+                });
+                return promise;
+            }
+            function prepareStateToUse(state){
+                let stateShape=JSON.parse(state["state_geojson"]);
+                let newState={};
+                newState["type"]="Feature";
+                newState["properties"]={};
+                newState.properties["statefp"]=state["statefp"];
+                newState.properties["name"]=state["name"];
+                newState.properties["ogrFID"]=state["ogrFID"];
+                newState["geometry"]={};
+                
+                let features = JSON.parse(JSON.stringify(stateShape["features"]));
+                
+                newState.geometry["type"]=features[0]["geometry"]["type"];
+
+                newState.geometry["coordinates"]= features[0]["geometry"]["coordinates"];
+
+                return newState;
+            }
+            function preparePrecinctToUse(precinct){
+                let precinctShape=JSON.parse(precinct["shape_geojson"]);
+                let newPrecinct={};
+                newPrecinct["type"]="Feature";
+                newPrecinct["properties"]={};
+                newPrecinct.properties["id"]=precinct["id"];
+                newPrecinct.properties["districtid"]=precinct["districtid"];
+                newPrecinct.properties["countyname"]=precinct["countyname"];
+                newPrecinct.properties["demographic"]=precinct["demographic"];
+                newPrecinct.properties["election"]=precinct["elections"];
+                newPrecinct.properties["origname"]=precinct["origname"];
+                newPrecinct.properties["name"]=precinct["name"]
+                newPrecinct.properties["statefp"]=precinct["statefp"]
+                newPrecinct["geometry"]={};
+                newPrecinct.geometry["type"]=precinctShape["type"];
+                newPrecinct.geometry["coordinates"]=precinctShape["coordinates"];
+                return newPrecinct;
+            }
+            function loadPrecinctDictionary(){
+                precincts={};
+                let eachLayer=(singleLayer)=>{
+                    let feature=singleLayer.feature;
+                    feature.properties.error=undefined;
+                    precincts[feature.properties.name]=singleLayer;
+                }
+                precinctLayer.eachLayer(eachLayer);
+            }
+            function setShapeColor(feature,shapeStyle){
+                switch(shapeStyle){
+                    case "STATE_STYLE": 
+                        return{
+                            weight:4,
+                            color:'black'
+                        };
+                    case "CONG_STYLE": 
+                        return{
+                            weight:4,
+                            fillColor:'#864665',
+                            fillOpacity: .3,
+                            color:'black'
+                        };
+                    case "NEW_PREC_STYLE":
+                        return{
+                            color:"#FF00FF",
+                            weight:6,
+                            fillOpacity: 0.95
+                        };
+                    case "OLD_PREC_STYLE":
+                        return{
+                            fillOpacity: 0.5,
+                            weight:1,
+                            color:"black"
+                        };
+                    case "DEFAULT_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:'#C0C0C0',
+                            fillOpacity: 0.5,
+                            weight:2
+                        }
+                    case "DEM_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("demColor").value
+                        };
+                    case "REP_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("repColor").value
+                        };
+                    case "OTHER_ELECTION_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("otherColor").value
+                        };
+                    case "OTHER_DEMO_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("restColor").value
+                        };
+                    case "WHITE_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("whiteColor").value
+                        };
+                    case "BLACK_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("blackColor").value
+                        };
+                    case "ASIAN_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("asianColor").value
+                        };
+                    case "HIS_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("hisColor").value
+                        };
+                    case "AMIN_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("aminColor").value
+                        };
+                    case "HAWAII_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:document.getElementById("hawaiiColor").value
+                        };
+                    case "GHOST_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:'gray'
+                        };
+                    case "ERROR_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:'orange'
+                        }
+                    case "NEIGHBOR_STYLE":
+                        return{
+                            color:'black',
+                            fillColor:'pink',
+                            fillOpacity: 0.6
+                        }
+                    default:
+                        console.log(feature);
+                        console.log("un-intended");
+                }
+            }
+            function setNPS(e){
+                this.setStyle(setShapeColor(this,"NEW_PREC_STYLE"));
+            }
+            function setOPS(e){
+                this.setStyle(setShapeColor(this,"OLD_PREC_STYLE"));
+            }
+            function precinctZoom(precinctCenter,precinctSize){
+                //console.log(precinctSize);
+                let precinctZoomLevel=10.5;
+                if(precinctSize<99999999) precinctZoomLevel=11;
+                if(precinctSize<59999999) precinctZoomLevel=11.5;
+                if(precinctSize<9999999) precinctZoomLevel=12;
+                if(precinctSize<5999999) precinctZoomLevel=12.5;
+                if(precinctSize<999999) precinctZoomLevel=13;
+                if(precinctSize<599999) precinctZoomLevel=13.5;
+                //console.log(precinctZoomLevel);
+                let centerCoords=precinctCenter.geometry.coordinates;
+                //resets center
+                mymap.setView(new L.LatLng(centerCoords[1],centerCoords[0]),precinctZoomLevel);
+            }
+            function loadNeighbors(){
+                selectedPrecinct=document.getElementById("selectedPrecinct").innerHTML;            
+                if(selectedPrecinct=="") return;
+
+                let selectedLayer=precincts[selectedPrecinct];
+                let selectedFeature=selectedLayer.feature;
+                loadNeighborsForPrecinct(selectedFeature).then(response=>{
+                    selectedFeature.properties.neighbors=response;
+                    showNeighbors(selectedFeature);
+                });
+            }
+            function showNeighbors(selectedFeature){
+                let neighbors=selectedFeature.properties.neighbors;
+                for(let i=0;i<neighbors.length;i++){
+                    let precinctName=neighbors[i].secondPrecinct.name;
+                    let selectedLayer=precincts[precinctName];
+                    if(selectedLayer!=undefined){
+                        selectedLayer.setStyle(setShapeColor(selectedLayer,"NEIGHBOR_STYLE"));
+                    }
+                }
+            }
+            function setDemographicSection(){
+                let selectedPrecinct=document.getElementById("selectedPrecinct").innerHTML;
+                if(selectedPrecinct=="") return;
+                let selectedLayer=precincts[selectedPrecinct];
+                let selectedFeature=selectedLayer.feature;
+                let whiteVotePop=selectedFeature.properties.demographic.whiteov18;
+                let blackVotePop=selectedFeature.properties.demographic.blackov18;
+                let asianVotePop=selectedFeature.properties.demographic.asianov18;
+                let hispanicVotePop=selectedFeature.properties.demographic.hisov18;
+                let otherVotePop=selectedFeature.properties.demographic.otherov18;
+                let hawaiiVotPop = selectedFeature.properties.demographic.hawov18;
+                let aminVotPop = selectedFeature.properties.demographic.aminov18;
+                let totVotePop=selectedFeature.properties.demographic.pop100;
+                
+                document.getElementById("aminNum").innerHTML=addCommas(Math.floor(aminVotPop)) ;
+                document.getElementById("hawaiiNum").innerHTML=addCommas(Math.floor(hawaiiVotPop));
+                document.getElementById("whiteNum").innerHTML=addCommas(Math.floor(whiteVotePop));
+                document.getElementById("blackNum").innerHTML=addCommas(Math.floor(blackVotePop));
+                document.getElementById("asianNum").innerHTML=addCommas(Math.floor(asianVotePop));
+                document.getElementById("hispanicNum").innerHTML=addCommas(Math.floor(hispanicVotePop));
+                document.getElementById("otherNum").innerHTML=addCommas(Math.floor(otherVotePop));
+                if(document.getElementById("dataSection").value=="demographic"){
+                    document.getElementById("totVotePop").innerHTML="Total Voting Population: " + addCommas(Math.floor(totVotePop));
+                }
+                changeAllColor();
+            }
+            function setElectionSection(){
+                let selectedPrecinct=document.getElementById("selectedPrecinct").innerHTML;
+                if(selectedPrecinct=="") return;
+                let selectedLayer=precincts[selectedPrecinct];
+                let selectedFeature=selectedLayer.feature;
+                let selectedElection = document.getElementById("year").value;
+                let elections=selectedFeature.properties.election;
+                let pres16=[];
+                let cong16=[];
+                let cong18=[];
+                for(let i=0;i<elections.length;i++){
+                    if(elections[i].type=="PRES" && elections[i].year=="2016"){
+                        pres16=elections[i];
+                    }
+                    if(elections[i].type=="CONG" && elections[i].year=="2016"){
+                        cong16=elections[i];
+                    }
+                    if(elections[i].type=="CONG" && elections[i].year=="2018"){
+                        cong18=elections[i];
+                    }
+                }
+                if(selectedElection == "pres16"){
+                    if(document.getElementById("dataSection").value=="election"){
+                        document.getElementById("totVotePop").innerHTML="Total Voters: " + addCommas(pres16.tot);
+                    }
+                    if(pres16.tot==0)document.getElementById("demNum").innerHTML = 0 + " [0%]";
+                    else document.getElementById("demNum").innerHTML = addCommas(pres16.dem)+ " ["+Math.round(100*(pres16.dem/pres16.tot)) +"%]";
+                    if(pres16.tot==0) document.getElementById("repNum").innerHTML = 0 + " [0%]";
+                    else document.getElementById("repNum").innerHTML = addCommas(pres16.rep)+ " ["+Math.round(100*(pres16.rep/pres16.tot)) +"%]";
+                    if(pres16.other==0) document.getElementById("othNum").innerHTML = 0 + " [0%]";
+                    else document.getElementById("othNum").innerHTML = addCommas(pres16.other)+ " ["+Math.round(100*(pres16.other/pres16.tot)) +"%]";
+                }
+                else if(selectedElection == "cong16"){
+                    if(document.getElementById("dataSection").value=="election"){
+                        document.getElementById("totVotePop").innerHTML="Total Voters: " + addCommas(cong16.tot);
+                    }
+                    if(cong16.tot==0)document.getElementById("demNum").innerHTML = 0 + " [0%]";
+                    else document.getElementById("demNum").innerHTML = addCommas(cong16.dem)+ " ["+Math.round(100*(cong16.dem/cong16.tot)) +"%]";
+                    if(cong16.tot==0) document.getElementById("repNum").innerHTML = 0 + " [0%]";
+                    else document.getElementById("repNum").innerHTML = addCommas(cong16.rep)+ " ["+Math.round(100*(cong16.rep/cong16.tot)) +"%]";
+                    if(cong16.other==0) document.getElementById("othNum").innerHTML = 0 + " [0%]";
+                    else document.getElementById("othNum").innerHTML = addCommas(cong16.other)+ " ["+Math.round(100*(cong16.other/cong16.tot)) +"%]";
+                }
+                else if(selectedElection == "cong18"){
+                    if(document.getElementById("dataSection").value=="election"){
+                        document.getElementById("totVotePop").innerHTML= "Total Voters: "+ addCommas(cong18.tot);
+                    }
+                    if(cong18.tot==0)document.getElementById("demNum").innerHTML = 0 + " [0%]";
+                    else document.getElementById("demNum").innerHTML = addCommas(cong18.dem)+ " ["+Math.round(100*(cong18.dem/cong18.tot)) +"%]";
+                    if(cong18.tot==0) document.getElementById("repNum").innerHTML = 0 + " [0%]";
+                    else document.getElementById("repNum").innerHTML = addCommas(cong18.rep)+ " ["+Math.round(100*(cong18.rep/cong18.tot)) +"%]";
+                    if(cong18.other==0) document.getElementById("othNum").innerHTML = 0 + " [0%]";
+                    else document.getElementById("othNum").innerHTML = addCommas(cong18.other)+ " ["+Math.round(100*(cong18.other/cong18.tot)) +"%]";
+                }
+                changeAllColor();
+            }
+            function clearBothSections(){
+                document.getElementById("whiteNum").innerHTML="N/A";
+                document.getElementById("blackNum").innerHTML="N/A";
+                document.getElementById("asianNum").innerHTML="N/A";
+                document.getElementById("hispanicNum").innerHTML="N/A";
+                document.getElementById("aminNum").innerHTML="N/A";
+                document.getElementById("hawaiiNum").innerHTML="N/A";
+                document.getElementById("otherNum").innerHTML="N/A";
+                document.getElementById("totVotePop").innerHTML="N/A";
+                document.getElementById("demNum").innerHTML ="N/A";
+                document.getElementById("repNum").innerHTML ="N/A";
+                document.getElementById("othNum").innerHTML ="N/A";
+            }
+            function precMenuChange(selectedValue){
+                let selectedLayer=precincts[selectedValue];
+                let selectedFeature=selectedLayer.feature;
+                showPrecinctOnClick(selectedLayer,selectedFeature);
+            }
+            function showPrecinctOnClick(selectedLayer,selectedFeature){
+                document.getElementById("totVotePop").innerHTML="N/A";
+                document.getElementById("selectedPrecinct").innerHTML=selectedFeature.properties.name;
+                precinctZoom(turf.centroid(selectedFeature),turf.area(selectedFeature));
+                changeAllColor();
+                precinctLayer.setStyle(setShapeColor(precinctLayer,"OLD_PREC_STYLE"));
+                selectedLayer.setStyle(setShapeColor(selectedLayer,"NEW_PREC_STYLE"));
+                setElectionSection();
+                setDemographicSection();
+                loadNeighbors();
+                showError(selectedLayer,selectedFeature.properties.error);
+            }
+            function changeAllColor(){
+                for(i in precincts){
+                    let singleLayer=precincts[i];
+                    let feature=singleLayer.feature;
+                    changeFeatColor(feature,singleLayer);
+                }
+                let selectedPrecinct=document.getElementById("selectedPrecinct").innerHTML;
+                if(selectedPrecinct=="") return;
+                precincts[selectedPrecinct].setStyle(setShapeColor(precincts[selectedPrecinct],"NEW_PREC_STYLE"));
+            }
+            function changeFeatColor(selectedFeature,selectedLayer){
+                let properties=selectedFeature.properties;
+                selectedLayer.setStyle(setShapeColor(selectedLayer,"DEFAULT_STYLE"));
+                if(properties.error!=undefined && properties.error.errorType!="RESOLVED"){
+                    selectedLayer.setStyle(setShapeColor(selectedLayer,"ERROR_STYLE"));
+                }
+                else{
+                    let dataType=document.getElementById("dataSection").value;
+                    switch (dataType){
+                        case "demographic":
+                            if(properties.demographic==undefined)return;
+                            let whiteov18=properties.demographic.whiteov18;
+                            let blackov18=properties.demographic.blackov18;
+                            let asianov18=properties.demographic.asianov18;
+                            let hisov18=properties.demographic.hisov18;
+                            let otherov18=properties.demographic.otherov18;
+                            let hawov18 = properties.demographic.hawov18;
+                            let aminov18 = properties.demographic.aminov18;
+                            let majorityRace=Math.max(whiteov18,blackov18,asianov18,hisov18,otherov18, hawov18, aminov18);
+                            switch(majorityRace){
+                                case 0: {selectedLayer.setStyle(setShapeColor(selectedLayer,"GHOST_STYLE")); break;}
+                                case whiteov18: {selectedLayer.setStyle(setShapeColor(selectedLayer,"WHITE_STYLE")); break;}
+                                case blackov18: {selectedLayer.setStyle(setShapeColor(selectedLayer,"BLACK_STYLE")); break;}
+                                case asianov18: {selectedLayer.setStyle(setShapeColor(selectedLayer,"ASIAN_STYLE")); break;}
+                                case hisov18: {selectedLayer.setStyle(setShapeColor(selectedLayer,"HIS_STYLE")); break;}
+                                case otherov18: {selectedLayer.setStyle(setShapeColor(selectedLayer,"OTHER_DEMO_STYLE")); break;}
+                                case hawov18 : {selectedLayer.setStyle(setShapeColor(selectedLayer,"HAWAII_STYLE")); break;}
+                                case aminov18 : {selectedLayer.setStyle(setShapeColor(selectedLayer,"AMIN_STYLE")); break;}
+                            }
+                            break;
+                        case "election":
+                            let majorityParty=0;
+                            let electionValue=document.getElementById("year").value;
+
+                            let elections=selectedFeature.properties.election;
+                            if(elections==undefined)return;
+                            let pres16=[];
+                            let cong16=[];
+                            let cong18=[];
+                            for(let i=0;i<elections.length;i++){
+                                if(elections[i].type=="PRES" && elections[i].year=="2016"){
+                                    pres16=elections[i];
+                                }
+                                if(elections[i].type=="CONG" && elections[i].year=="2016"){
+                                    cong16=elections[i];
+                                }
+                                if(elections[i].type=="CONG" && elections[i].year=="2018"){
+                                    cong18=elections[i];
+                                }
+                            }
+                            switch(electionValue){
+                                case "pres16":
+                                    let demvotpres=pres16.dem;
+                                    let repvotpres=pres16.rep;
+                                    let othvotpres=pres16.other;
+                                    majorityParty=Math.max(demvotpres,repvotpres,othvotpres);
+                                    switch(majorityParty){
+                                        case 0: {selectedLayer.setStyle(setShapeColor(selectedLayer,"GHOST_STYLE")); break;}
+                                        case demvotpres: {selectedLayer.setStyle(setShapeColor(selectedLayer,"DEM_STYLE")); break;}
+                                        case repvotpres: {selectedLayer.setStyle(setShapeColor(selectedLayer,"REP_STYLE")); break;}
+                                        case othvotpres: {selectedLayer.setStyle(setShapeColor(selectedLayer,"OTHER_ELECTION_STYLE")); break;}
+                                    }
+                                    break;
+                                case "cong16":
+                                    let demvot16=cong16.dem;
+                                    let repvot16=cong16.rep;
+                                    let othvot16=cong16.other;
+                                    majorityParty=Math.max(demvot16,repvot16,othvot16);
+                                    switch(majorityParty){
+                                        case 0: {selectedLayer.setStyle(setShapeColor(selectedLayer,"GHOST_STYLE")); break;}
+                                        case demvot16: {selectedLayer.setStyle(setShapeColor(selectedLayer,"DEM_STYLE")); break;}
+                                        case repvot16: {selectedLayer.setStyle(setShapeColor(selectedLayer,"REP_STYLE")); break;}
+                                        case othvot16: {selectedLayer.setStyle(setShapeColor(selectedLayer,"OTHER_ELECTION_STYLE")); break;}
+                                    }
+                                    break;
+                                case "cong18":
+                                    let demvot18=cong18.dem;
+                                    let repvot18=cong18.rep;
+                                    let othvot18=cong18.other;
+                                    majorityParty=Math.max(demvot18,repvot18,othvot18);
+                                    switch(majorityParty){
+                                        case 0: {selectedLayer.setStyle(setShapeColor(selectedLayer,"GHOST_STYLE")); break;}
+                                        case demvot18: {selectedLayer.setStyle(setShapeColor(selectedLayer,"DEM_STYLE")); break;}
+                                        case repvot18: {selectedLayer.setStyle(setShapeColor(selectedLayer,"REP_STYLE")); break;}
+                                        case othvot18: {selectedLayer.setStyle(setShapeColor(selectedLayer,"OTHER_ELECTION_STYLE")); break;}
+                                    }
+                                    break;
+                            }
+                    }
+                }
+            }
+            function onClick(e){
+                let selectedName=e.target.feature.properties.name;
+                if(editingNeighbors){
+                    let selectedLayer=precincts[selectedName];
+                    if(document.getElementById("selectedNeighbor").innerHTML!=""){
+                        let oldLayer=precincts[document.getElementById("selectedNeighbor").innerHTML];
+                        oldLayer.setStyle(setShapeColor(oldLayer,"OLD_PREC_STYLE"));
+                    }
+                    document.getElementById("selectedNeighbor").innerHTML=selectedName;
+                    selectedLayer.setStyle(setShapeColor(selectedLayer,"NEW_PREC_STYLE"));
+                }
+                else if(mergingPrecincts){
+                    let selectedLayer=precincts[selectedName];
+                    if(document.getElementById("selectedMerger").innerHTML!=""){
+                        let oldLayer=precincts[document.getElementById("selectedMerger").innerHTML];
+                        oldLayer.setStyle(setShapeColor(oldLayer,"OLD_PREC_STYLE"));
+                    }
+                    document.getElementById("selectedMerger").innerHTML=selectedName;
+                    selectedLayer.setStyle(setShapeColor(selectedLayer,"NEW_PREC_STYLE"));
+                }
+                else if(editingBorder){
+
+                }
+                else{
+                    document.getElementById("selectedPrecinct").innerHTML=selectedName;
+                    precMenuChange(selectedName);
+                }
+            }
+            function updateError(feature){
+                if(feature.properties.error==undefined || feature.properties.error.errorType=="RESOLVED")return;
+                let newError={};
+                let today = new Date();
+                let dateTime = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate()+" "+today.getHours() + ":" + today.getMinutes()+":"+today.getSeconds();
+                let comment="["+dateTime+"] >>"+document.getElementById("commentArea").value+"<br/>";
+                newError.comment=document.getElementById("commentArea").value;
+                newError.errorType=feature.properties.error.errorType;
+                newError.precinctID=feature.properties.id;
+                newError.precinctName=feature.properties.name;
+                if(newError.errorType=="GHOST"){
+                    newError.relevantInfo=JSON.stringify(feature.properties.election)+" "+JSON.stringify(feature.properties.demographic);
+                }
+                else if(newError.errorType=="VOTANOM"){
+                    newError.relevantInfo=JSON.stringify(feature.properties.election);
+                }
+                else if(newError.errorType=="DEMANOM"){
+                    newError.relevantInfo=JSON.stringify(feature.properties.demographic);
+                }
+                else if(newError.errorType=="ENCLOSED" || newError.errorType=="GAP" || newError.errorType=="INTERSECT"){
+                    newError.relevantInfo=JSON.stringify(feature.geometry);
+                }
+                else if(newError.errorType=="MULTI"){
+                    newError.relevantInfo="";
+                }
+                let preparedError=feature.properties.error;
+                //document.getElementById("errorLog").innerHTML+="<div style=\'border-style:solid\'>Error Resolved on: "+feature.properties.name+" from ERROR: "+feature.properties.error.errorType+". <br/> Optional Comment: "+comment+"</div><br/>";
+                preparedError["errorType"]="RESOLVED";
+                document.getElementById("commentArea").value="";
+                addFixedError(newError);
+            }
+            function addFixedError(newError){
+                let errorRequest=new XMLHttpRequest();
+                errorRequest.open('POST','http://localhost:8080/fixederrors/');
+                if(newError){
+                    errorRequest.setRequestHeader('Content-Type','application/json');
+                }
+                let error=JSON.stringify(newError);
+                errorRequest.send(error);
+            }
+            function editBorder(){
+                let selectedPrecinctName=document.getElementById("selectedPrecinct").innerHTML;
+                if(selectedPrecinctName=="")return;
+                let layer=precincts[selectedPrecinctName];
+                let feature=layer.feature;
+                let featureID=feature.properties.id;
+                layer.pm.toggleEdit({
+                    limitMarkersToCount:20
+                });
+                if(!layer.pm.enabled()){
+                    if(feature.properties.error!=undefined && (feature.properties.error.errorType=="GAP" || feature.properties.error.errorType=="INTERSECT")){
+                        updateError(feature);
+                    }
+                    updatePrecinct(featureID,preparePrecinctToSend(layer.toGeoJSON()));
+                    layer.feature=layer.toGeoJSON();
+                    resetEditBorder();
+                    document.getElementById("neighborButton").disabled=false;
+                    document.getElementById("mergeButton").disabled=false;
+                }
+                else{
+                    disappearMergingSection();
+                    disappearNeighborSection();
+                    document.getElementById("neighborButton").disabled=true;
+                    document.getElementById("mergeButton").disabled=true;
+                    editingBorder=true;
+                    let allEditBorderButtons=document.getElementsByClassName("editBorderButton");
+                    for(let i=0;i<allEditBorderButtons.length;i++){
+                        allEditBorderButtons[i].innerHTML="Save Border";
+                    }
+                }
+            }
+            function resetEditBorder(){
+                editingBorder=false;
+                let allEditBorderButtons=document.getElementsByClassName("editBorderButton");
+                for(let i=0;i<allEditBorderButtons.length;i++){
+                    allEditBorderButtons[i].innerHTML="Edit Border";
+                }
+            }
+            function cancelEditBorder(){
+                let selectedPrecinctName=document.getElementById("selectedPrecinct").innerHTML;
+                if(selectedPrecinctName=="")return;
+                let layer=precincts[selectedPrecinctName];
+                let feature=layer.feature;
+                if(layer.pm.enabled()){
+                    editingBorder=false;
+                    //TO-DO
+                }
+            }
+            function setNotError(){
+                let selectedPrecinctName=document.getElementById("selectedPrecinct").innerHTML;
+                let layer=precincts[selectedPrecinctName];
+                let feature=layer.feature;
+                let featureID=feature.properties.id;
+                let buttonToBeDeleted=document.getElementById(feature.properties.name+"_error");
+                buttonToBeDeleted.parentNode.removeChild(buttonToBeDeleted);
+                let errorDiv=document.getElementById("currentError");
+                errorDiv.style.display="none";
+                document.getElementById("errorSection").style.display="none";
+                if(feature.properties.error!=undefined){
+                    updateError(feature);
+                }
+                updatePrecinct(featureID,preparePrecinctToSend(feature));
+                changeFeatColor(feature,layer);
+            }
+            function updatePrecinct(selectedID,newPrecinct){
+                let precinctRequest=new XMLHttpRequest();
+                precinctRequest.open('PUT','http://localhost:8080/precincts/'+selectedID);
+                if(newPrecinct){
+                    precinctRequest.setRequestHeader('Content-Type','application/json');
+                }
+                let precinct=JSON.stringify(newPrecinct);
+                precinctRequest.send(precinct);
+            }
+            function preparePrecinctToSend(feature){
+                let preparedPrecinct={};
+                preparedPrecinct["districtid"]=feature.properties.districtid;
+                preparedPrecinct["name"]=feature.properties.name;
+                preparedPrecinct["statefp"]=feature.properties.statefp;
+                preparedPrecinct["error"]=feature.properties.error;
+                preparedPrecinct["countyname"]=feature.properties.countyname;
+                preparedPrecinct["origname"]=feature.properties.origname;
+                preparedPrecinct["demographic"]=feature.properties.demographic;
+                preparedPrecinct["elections"]=feature.properties.election;
+                preparedPrecinct["neighbors"]=feature.properties.neighbors;
+                preparedPrecinct["shape_geojson"]=JSON.stringify(feature.geometry);
+                return preparedPrecinct;
+            }
+            function mergePrecincts(){
+                let selectedPrecinctName=document.getElementById("selectedPrecinct").innerHTML;
+                let secondPrecinctName=document.getElementById("selectedMerger").innerHTML;
+                if(secondPrecinctName=="" || secondPrecinctName==selectedPrecinctName) return;
+                let firstLayer=precincts[selectedPrecinctName];
+                let secondLayer=precincts[secondPrecinctName];
+                let firstPrecinct=firstLayer.feature;
+                let secondPrecinct=secondLayer.feature;
+                let firstProperties=firstPrecinct.properties;
+                firstPrecinct.properties="";
+                let secondProperties=secondPrecinct.properties;
+                secondPrecinct.properties="";
+                let newPrecinct=turf.union(firstPrecinct,secondPrecinct);
+
+                newPrecinct.properties=secondProperties;
+                let properties=newPrecinct.properties;
+                let demographics=properties.demographic;
+
+                demographics.aminov18 += firstProperties.demographic.aminov18;
+                demographics.asianov18 += firstProperties.demographic.asianov18;
+                demographics.blackov18 += firstProperties.demographic.blackov18;
+                demographics.hawov18 += firstProperties.demographic.hawov18;
+                demographics.hisov18 += firstProperties.demographic.hisov18;
+                demographics.otherov18 += firstProperties.demographic.otherov18;
+                demographics.pop100 += firstProperties.demographic.pop100;
+                demographics.whiteov18 += firstProperties.demographic.whiteov18;
+
+                let elections=properties.election;
+                let newpres16=[];
+                let newcong16=[];
+                let newcong18=[];
+                for(let i=0;i<elections.length;i++){
+                    if(elections[i].type=="PRES" && elections[i].year=="2016") newpres16=elections[i];
+                    if(elections[i].type=="CONG" && elections[i].year=="2016") newcong16=elections[i];
+                    if(elections[i].type=="CONG" && elections[i].year=="2018") newcong18=elections[i];
+                }
+                let secondElections=firstProperties.election;
+                let secpres16=[];
+                let seccong16=[];
+                let seccong18=[];
+                for(let i=0;i<secondElections.length;i++){
+                    if(secondElections[i].type=="PRES" && secondElections[i].year=="2016") secpres16=secondElections[i];
+                    if(secondElections[i].type=="CONG" && secondElections[i].year=="2016") seccong16=secondElections[i];
+                    if(secondElections[i].type=="CONG" && secondElections[i].year=="2018") seccong18=secondElections[i];
+                }
+                newpres16.dem += secpres16.dem;
+                newpres16.rep += secpres16.rep;
+                newpres16.other += secpres16.other;
+                newpres16.tot += secpres16.tot
+                newcong16.dem += seccong16.dem;
+                newcong16.rep += seccong16.rep;
+                newcong16.other += seccong16.other;
+                newcong16.tot += seccong16.tot;
+                newcong18.dem += seccong18.dem;
+                newcong18.rep += seccong18.rep;
+                newcong18.other += seccong18.other;
+                newcong18.tot += seccong18.tot;
+
+                let errorDiv=document.getElementById("currentError");
+                errorDiv.style.display="none";
+                document.getElementById("errorSection").style.display="none";
+    //              
+                firstLayer.remove();
+                precinctLayer.removeLayer(firstLayer);
+                secondLayer.remove();
+                precinctLayer.removeLayer(secondLayer);
+                delete precincts[secondPrecinctName];
+                delete precincts[selectedPrecinctName];
+                precinctLayer.addData(newPrecinct);
+                loadPrecinctDictionary();
+                document.getElementById("mergingSection").style.display="none";
+                mergingPrecincts=false;
+
+
+                firstPrecinct.properties=firstProperties;
+                loadNeighborsForPrecinct(newPrecinct).then(response=>{
+                    newPrecinct.properties.neighbors=response;
+                    showNeighbors(newPrecinct);
+                    if(firstProperties.error!=undefined && (firstProperties.error.errorType=="ENCLOSED" || firstProperties.error.errorType=="GAP")){
+                        updateError(firstPrecinct);
+                    }
+                    mergePrec(firstProperties.id,newPrecinct.properties.id,preparePrecinctToSend(newPrecinct));
+                    disappearMergingSection();
+                    let allEditBorderButtons=document.getElementsByClassName("editBorderButton");
+                    for(let i=0;i<allEditBorderButtons.length;i++){
+                        allEditBorderButtons[i].disabled=false;
+                    }
+                });
+            }
+            function mergePrec(id,id2,feature){
+                let mergeRequest=new XMLHttpRequest();
+                mergeRequest.open('PUT','http://localhost:8080/merge/'+id+"/"+id2);            
+                if(feature){
+                    mergeRequest.setRequestHeader('Content-Type','application/json');
+                }
+                let newPrec=JSON.stringify(feature);
+                mergeRequest.send(newPrec);
+            }
+            function showError(layer,error){
+                let featureName=layer.feature.properties.name;
+                let errorDiv=document.getElementById("currentError");
+                document.getElementById("errorSection").style.display="none";
+                errorDiv.style.display="none";
+                if(error==undefined) return;
+                document.getElementById("errorSection").style.display="block";
+                document.getElementById("ghostSection").style.display="none";
+                document.getElementById("votAnomSection").style.display="none";
+                document.getElementById("demAnomSection").style.display="none";
+                document.getElementById("mergeSection").style.display="none";
+                document.getElementById("gapIntersectSection").style.display="none";
+                document.getElementById("multiSection").style.display="none";
+                errorDiv.style.display="block";
+                switch(error.errorType){
+                    case "GHOST":
+                        document.getElementById("ghostSection").style.display="block";
+                        break;
+                    case "ENCLOSED":
+                        document.getElementById("mergeSection").style.display="block";
+                        break;
+                    case "VOTANOM":
+                        document.getElementById("votAnomSection").style.display="block";
+                        break;
+                    case "DEMANOM":
+                        document.getElementById("detAnomSection").style.display="block";
+                        break;
+                    case "MULTI":
+                        document.getElementById("multiSection").style.display="block";
+                        break;
+                    case "GAP":
+                        document.getElementById("gapIntersectSection").style.display="block";
+                        break;
+                    case "INTERSECT":
+                        document.getElementById("gapIntersectSection").style.display="block";
+                        break;
+                    default:
+                        document.getElementById("errorSection").style.display="none";
+                        errorDiv.style.display="none";
+                }
+            }
+            function changePrecinctData(){
+                let pres16Dem=removeCommas(document.getElementById("pres16Dem").value);
+                let pres16Rep=removeCommas(document.getElementById("pres16Rep").value);
+                let pres16Oth=removeCommas(document.getElementById("pres16Other").value);
+                let cong16Dem=removeCommas(document.getElementById("cong16Dem").value);
+                let cong16Rep=removeCommas(document.getElementById("cong16Rep").value);
+                let cong16Oth=removeCommas(document.getElementById("cong16Other").value);
+                let cong18Dem=removeCommas(document.getElementById("cong18Dem").value);
+                let cong18Rep=removeCommas(document.getElementById("cong18Rep").value);
+                let cong18Oth=removeCommas(document.getElementById("cong18Other").value);
+                let whiteVotePop=removeCommas(document.getElementById("whiteVotePop").value);
+                let blackVotePop=removeCommas(document.getElementById("blackVotePop").value);
+                let asianVotePop=removeCommas(document.getElementById("asianVotePop").value);
+                let hispanicVotePop=removeCommas(document.getElementById("hispanicVotePop").value);
+                let hawaiiVotePop=removeCommas(document.getElementById("hawaiiVotePop").value);
+                let aminVotePop=removeCommas(document.getElementById("aminVotePop").value);
+                let otherVotePop=removeCommas(document.getElementById("otherVotePop").value);
+
+                let selectedValue=document.getElementById("selectedPrecinct").innerHTML;
+                let selectedLayer=precincts[selectedValue];
+                let selectedFeature=selectedLayer.feature;
+                let selectedID=selectedFeature.properties.id;
+                changePrecinctVotingData(selectedFeature,pres16Dem,pres16Rep,pres16Oth,cong16Dem,cong16Rep,cong16Oth,cong18Dem,cong18Rep,cong18Oth);
+                changePrecinctDemographicData(selectedFeature,whiteVotePop,blackVotePop,asianVotePop,hispanicVotePop,otherVotePop, aminVotePop,hawaiiVotePop );
+
+                let elections=selectedFeature.properties.election;
+                let pres16=[];
+                let cong16=[];
+                let cong18=[];
+                for(let i=0;i<elections.length;i++){
+                    if(elections[i].type=="PRES" && elections[i].year=="2016"){
+                        pres16=elections[i];
+                    }
+                    if(elections[i].type=="CONG" && elections[i].year=="2016"){
+                        cong16=elections[i];
+                    }
+                    if(elections[i].type=="CONG" && elections[i].year=="2018"){
+                        cong18=elections[i];
+                    }
+                }
+
+                //changes the name of the feature, removes the name off the dropdown, and adds the new name in
+                if(selectedValue!=document.getElementById("precinctName").value){
+                    selectedFeature.properties.name=document.getElementById("precinctName").value;
+                    precincts[selectedFeature.properties.name]=precincts[selectedValue];
+                    delete precincts[selectedValue];
+                    document.getElementById("selectedPrecinct").innerHTML=selectedFeature.properties.name;
+                }
+                showPrecinctOnClick(selectedLayer,selectedFeature);
+                if(selectedFeature.properties.error!=undefined){
+                    if(selectedFeature.properties.error.errorType=="GHOST" && selectedFeature.properties.demographic.pop100!=0 && pres16.tot!=0 && cong16.tot!=0 && cong18.tot!=0){
+                        let selectedError=document.getElementById(selectedValue+"_error");
+                        if(selectedError!=undefined){
+                            selectedError.parentNode.removeChild(selectedError);
+                            document.getElementById("currentError").style.display="none";
+                            document.getElementById("errorSection").style.display="none";
+                        }
+                        updateError(selectedFeature);
+                    }
+                    else if(selectedFeature.properties.error.errorType=="VOTANOM" && pres16.tot!=0 && cong16.tot!=0 && cong18.tot!=0){
+                        let selectedError=document.getElementById(selectedValue+"_error");
+                        if(selectedError!=undefined){
+                            selectedError.parentNode.removeChild(selectedError);
+                            document.getElementById("currentError").style.display="none";
+                            document.getElementById("errorSection").style.display="none";
+                        }
+                        updateError(selectedFeature);
+                    }
+                    else if(selectedFeature.properties.error.errorType=="DEMANOM" && selectedFeature.properties.demographic.pop100!=0){
+                        let selectedError=document.getElementById(selectedValue+"_error");
+                        if(selectedError!=undefined){
+                            selectedError.parentNode.removeChild(selectedError);
+                            document.getElementById("currentError").style.display="none";
+                            document.getElementById("errorSection").style.display="none";
+                        }
+                        updateError(selectedFeature);
+                    }
+                }
+
+                document.getElementById('changeDataSection').style.display='none';
+                changeFeatColor(selectedLayer.feature,selectedLayer);
+                selectedLayer.setStyle(setShapeColor(selectedLayer,"NEW_PREC_STYLE"));
+                updatePrecinct(selectedID,preparePrecinctToSend(selectedFeature));
+            }
+            function changePrecinctDemographicData(feature,whiteVotePop,blackVotePop,asianVotePop,hispanicVotePop,otherVotePop,aminVotePop, hawaiiVotePop){
+                let demographic=feature.properties.demographic;
+                demographic.whiteov18=parseInt(whiteVotePop);
+                demographic.blackov18=parseInt(blackVotePop);
+                demographic.asianov18=parseInt(asianVotePop);
+                demographic.hisov18=parseInt(hispanicVotePop);
+                demographic.otherov18=parseInt(otherVotePop);
+                demographic.aminov18 = parseInt(aminVotePop);
+                demographic.hawov18 = parseInt(hawaiiVotePop);
+                demographic.pop100=demographic.whiteov18+demographic.blackov18+demographic.asianov18+demographic.hisov18+demographic.otherov18;
+                
+            }
+            function changePrecinctVotingData(feature,pres16Dem,pres16Rep,pres16Oth,cong16Dem,cong16Rep,cong16Oth,cong18Dem,cong18Rep,cong18Oth){
+                let elections=feature.properties.election;
+                let pres16=[];
+                let cong16=[];
+                let cong18=[];
+                for(let i=0;i<elections.length;i++){
+                    if(elections[i].type=="PRES" && elections[i].year=="2016"){
+                        pres16=elections[i];
+                    }
+                    if(elections[i].type=="CONG" && elections[i].year=="2016"){
+                        cong16=elections[i];
+                    }
+                    if(elections[i].type=="CONG" && elections[i].year=="2018"){
+                        cong18=elections[i];
+                    }
+                }
+                pres16.dem=parseInt(pres16Dem);
+                pres16.rep=parseInt(pres16Rep);
+                pres16.other=parseInt(pres16Oth);
+                pres16.tot=pres16.dem+pres16.rep+pres16.other;
+                cong16.dem=parseInt(cong16Dem);
+                cong16.rep=parseInt(cong16Rep);
+                cong16.other=parseInt(cong16Oth);
+                cong16.tot=cong16.dem+cong16.rep+cong16.other;
+                cong18.dem=parseInt(cong18Dem);
+                cong18.rep=parseInt(cong18Rep);
+                cong18.other=parseInt(cong18Oth);
+                cong18.tot=cong18.dem+cong18.rep+cong18.other;
+            }
+            function onEachPrecinct(feature,layer){
+                layer.on({
+                    click: onClick
+                });
+                changeFeatColor(feature,layer);
+            }
+            function clickState(e){
+                let selectedName=e.target.feature.properties.name;
+                document.getElementById("States").value=selectedName;
+                loadFeature()
+            }
+            function onEachState(feature,layer){
+                layer.on({
+                    click:clickState
+                });
+                layer.setStyle(setShapeColor(layer,"STATE_STYLE"));
+            }
+            function clickCong(e){
+                let selectedId=e.target.feature.properties.congid;
+                let selectedState=e.target.feature.properties.statefp;
+                let precinctFilter=document.getElementById("precinctFilter").checked;
+                if(precinctFilter) loadForCong(selectedId,selectedState);
+            }
+            function loadForCong(selectedId,selectedState,name){
+                if(statesCache[selectedState][selectedId].length>1){
+                    for(let i=1;i<statesCache[selectedState][selectedId].length;i++){
+                        precinctLayer.addData(statesCache[selectedState][selectedId][i]);
+                    }
+                    loadPrecinctDictionary();
+                    if(name!=undefined){
+                        precMenuChange(name);
+                    }
+                }
+                else{
+                    loadPrecinctsForCong(selectedState,selectedId,name);
+                }
+            }
+            function onEachCong(feature,layer){
+                layer.on({
+                   click: clickCong
+                });
+                layer.setStyle(setShapeColor(layer,"CONG_STYLE"));
+            }
+        </script>
     </body>
 </html>
