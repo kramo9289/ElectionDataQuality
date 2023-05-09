@@ -5,7 +5,7 @@ To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
-<html style="border: solid black;">
+<html>
     <head>
         <title>State Election and Demographic Data</title>
         <meta charset="UTF-8">
@@ -21,158 +21,154 @@ and open the template in the editor.
         <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
         <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
     </head>
-    <body style="font-family:Helvetica" onload="initLoad()">
-        <div>
-                <div style="visibility: hidden; float:left; width: 42.5%">_</div>
-                <div style="font-size: 40px; float:left;">Election Data Quality</div>
-                <div style="visibility: hidden; float:right;">_</div>
-                <input style="border: solid black;padding-right:15px; padding-left:15px; float:right;" type ="image" src="cog.png" alt="Settings" class="nicebuttons" onclick="document.getElementById('settingsPopup').style.display='block'">
-                <input style="border: solid black;padding-right:15px;padding-left:15px; float:right;" type ="image" src="checklist.png" alt="Settings" class="nicebuttons" onclick="getAllFixedErrors();document.getElementById('fixedErrorPopup').style.display='block'">
-                <input style="border: solid black;padding-right:15px; padding-left:15px; float:right;" type ="image" src="ee.png" alt="Errors" class="nicebuttons" onclick="getAllErrors();document.getElementById('errorPopup').style.display='block'">
-                
-        </div>
-        
-        <div class="split left">
-            <div class="centered1">
-                <h2>Location</h2>
-                <div style=" padding-bottom:10px">
-                    <label for="States" style="font-size: 17px;padding-right: 26px">State:</label>
-                    <select id="States" onchange="loadFeature()"> <!-- needs to be replaced by data from DB -->
-                        <option value="State" onclick="">States</option>
-                    </select>
-                </div>
-                <div id="searchWindow">
-                    <input id="precinctSearch" type="text" placeholder="Search for Precinct">
-                    <button onclick="findPrecincts()">Submit Search</button>
-                    <div id="searchResults"></div>
-                </div>
-                <br/>
+    <body style="font-family:Helvetica" onload="initLoad();handleSplitHeight()" onresize="handleSplitHeight()">
+        <div id="title" style="font-size:40px;text-align: center;border: solid black;">Election Data Quality</div>
+        <div class="grid-container top">
+            <div style=" padding-bottom:10px" class="grid-item">
+                <label for="States" style="font-size: 28px; padding-right: 5px;">State:</label>
+                <select style="font-size: 28px;" id="States" onchange="loadFeature()"> <!-- needs to be replaced by data from DB -->
+                    <option value="State" onclick="">States</option>
+                </select>
+            </div>
+            <div id="searchWindow" >
                 <div>
-                    Selected Precinct: <br/>
+                    <input style="width: 100%;text-align: center; " class="pItem1" onclick="toggleDropdown()" onkeyup="findPrecincts();filterPrecinctSearch()" onfocusout="setTimeout(toggleDropdown,1000)" id="precinctSearch" type="text" placeholder="Search for Precinct">
+                </div>
+                <div id="searchResults" class="searchItems"></div>
+            </div>
+            <div style="position:relative;width: 100%">
+                <input style="border: solid black;padding: 5px;float:right" type ="image" src="cog.png" alt="Settings" class="nicebuttons" onclick="document.getElementById('settingsPopup').style.display='block'">
+                <input style="border: solid black;padding: 5px;float:right" type ="image" src="checklist.png" alt="Settings" class="nicebuttons" onclick="getAllFixedErrors();document.getElementById('fixedErrorPopup').style.display='block'">
+                <input style="border: solid black;padding: 5px;float:right" type ="image" src="ee.png" alt="Errors" class="nicebuttons" onclick="getAllErrors();document.getElementById('errorPopup').style.display='block'">      
+            </div>
+        </div>
+        <div class="splitPane">
+            <div class="left">
+                <div class="centered1">
+                    <h2><u>Selected Precinct</u></h2>
                     <h3 id="selectedPrecinct"></h3>
                 </div>
-            </div>
-            <div style=" border-bottom:solid black;"></div>
-            <div class="centered2">
-                <h2>Information</h2>
-                
-                <label id="totVotePop"> X people</label>
-                <table cellpadding="0">
-                    <tr>
-                        <td><label for="dataSection">Data Type:</label></td>
-                        <td>
-                            <select id="dataSection" onchange="switchDataSection();changeAllColor()" style="">
-                                <option value="none" selected>None</option>
-                                <option value="election">Election</option>
-                                <option value="demographic">Demographic</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr id="electionDropdownArea" style="display:none">
-                        <td><label for="year">Election Type:</label></td>
-                        <td>
-                            <select id="year" onchange="setElectionSection();changeAllColor()" style="">
-                                <option id="noElection" value="none" selected>None</option>
-                                <option id="pres16" value="pres16">Presidential 2016</option>
-                                <option id="cong16" value="cong16">Congressional 2016</option>
-                                <option id="cong18" value="cong18">Congressional 2018</option>
-                            </select>
-                        </td>
-                    </tr>
-                </table>
-                <br><br>
-                <div id="electionSection">
-                    <label>Democratic: </label><span id="demNum" style="float:right;padding-right:25px">X people [X%]</span><br/>
-                    <label>Republican: </label><span id="repNum" style="float:right;padding-right:25px">Y people [Y%]</span><br/>
-                    <label style="padding-right: 43px">Other:</label><span id="othNum" style="float:right;padding-right:25px">Z people [Z%]</span>
-                    <br>
+                <div style=" border-bottom:solid black;"></div>
+                <div class="centered2">
+                    <h2>Information</h2>
+                    
+                    <label id="totVotePop"> X people</label>
+                    <table cellpadding="0">
+                        <tr>
+                            <td><label for="dataSection">Data Type:</label></td>
+                            <td>
+                                <select id="dataSection" onchange="switchDataSection();changeAllColor()" style="">
+                                    <option value="none" selected>None</option>
+                                    <option value="election">Election</option>
+                                    <option value="demographic">Demographic</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr id="electionDropdownArea" style="display:none">
+                            <td><label for="year">Election Type:</label></td>
+                            <td>
+                                <select id="year" onchange="setElectionSection();changeAllColor()" style="">
+                                    <option id="noElection" value="none" selected>None</option>
+                                    <option id="pres16" value="pres16">Presidential 2016</option>
+                                    <option id="cong16" value="cong16">Congressional 2016</option>
+                                    <option id="cong18" value="cong18">Congressional 2018</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                    <br><br>
+                    <div id="electionSection">
+                        <label>Democratic: </label><span id="demNum" style="float:right;padding-right:25px">X people [X%]</span><br/>
+                        <label>Republican: </label><span id="repNum" style="float:right;padding-right:25px">Y people [Y%]</span><br/>
+                        <label style="padding-right: 43px">Other:</label><span id="othNum" style="float:right;padding-right:25px">Z people [Z%]</span>
+                        <br>
+                    </div>
+                    <div id="demographicSection">
+                        <label>American Indian: </label><span id="aminNum" style="float:right;padding-right:25px">X</span><br/>
+                        <label>Asian: </label><span id="asianNum" style="float:right;padding-right:25px">Y</span><br/>
+                        <label>Black: </label><span id="blackNum" style="float:right;padding-right:25px">X</span><br/>
+                        <label>Hawaii: </label><span id="hawaiiNum" style="float:right;padding-right:25px">X</span><br/>
+                        <label>Hispanic: </label><span id="hispanicNum" style="float:right;padding-right:25px">Y</span><br/>
+                        <label>White: </label><span id="whiteNum" style="float:right;padding-right:25px">X</span><br/>
+                        <label>Other: </label><span id="otherNum" style="float:right;padding-right:25px">Y</span>
+                    </div>
                 </div>
-                <div id="demographicSection">
-                    <label>American Indian: </label><span id="aminNum" style="float:right;padding-right:25px">X</span><br/>
-                    <label>Asian: </label><span id="asianNum" style="float:right;padding-right:25px">Y</span><br/>
-                    <label>Black: </label><span id="blackNum" style="float:right;padding-right:25px">X</span><br/>
-                    <label>Hawaii: </label><span id="hawaiiNum" style="float:right;padding-right:25px">X</span><br/>
-                    <label>Hispanic: </label><span id="hispanicNum" style="float:right;padding-right:25px">Y</span><br/>
-                    <label>White: </label><span id="whiteNum" style="float:right;padding-right:25px">X</span><br/>
-                    <label>Other: </label><span id="otherNum" style="float:right;padding-right:25px">Y</span>
-                </div>
-            </div>
-            <div style=" border-bottom:solid black;"></div>
-            <div class="centered3">
-                <div id="errorSection" style="display:none">
-                    <h2>Error Type</h2>
-                    <div id="currentError">
-                        <div id="ghostSection" style="display:none">
-                            Ghost Precinct?<br/>
-                            <button onclick="setNotError()">Yes</button><br/>
-                            <button onclick="openChangeDataSection()">Set Data</button>
+                <div style=" border-bottom:solid black;"></div>
+                <div class="centered3">
+                    <div id="errorSection" style="display:none">
+                        <h2>Error Type</h2>
+                        <div id="currentError">
+                            <div id="ghostSection" style="display:none">
+                                Ghost Precinct?<br/>
+                                <button onclick="setNotError()">Yes</button><br/>
+                                <button onclick="openChangeDataSection()">Set Data</button>
+                            </div>
+                            <div id="votAnomSection" style="display:none">
+                                Voting Anomaly<br/>
+                                <button onclick="openChangeDataSection()">Set Data</button>
+                                <button onclick="setNotError()">Set As Not an Error</button><br>
+                            </div>
+                            <div id="demAnomSection" style="display:none">
+                                Demographic Anomaly<br/>
+                                <button onclick="openChangeDataSection()">Set Data</button>
+                                <button onclick="setNotError()">Set As Not an Error</button><br>
+                            </div>
+                            <div id="mergeSection" style="display:none">
+                                Enclosed Precinct<br/>
+                                <button onclick="openMergingSection()">Open "Merge Precincts" Section</button>
+                                <button onclick="setNotError()">Set As Not an Error</button><br>
+                            </div>
+                            <div id="multiSection" style="display:none">
+                                Multi-polygon<br/>
+                                <button onclick="setNotError()">Not an Error</button>
+                            </div>
+                            <div id="gapIntersectSection" style="display:none">
+                                Precinct Gap/Intersection<br/>
+                                <button class="editBorderButton" onclick="editBorder()">Edit Border</button>
+                                <button onclick="setNotError()">Set As Not an Error</button><br>
+                            </div>
                         </div>
-                        <div id="votAnomSection" style="display:none">
-                            Voting Anomaly<br/>
-                            <button onclick="openChangeDataSection()">Set Data</button>
-                            <button onclick="setNotError()">Set As Not an Error</button><br>
-                        </div>
-                        <div id="demAnomSection" style="display:none">
-                            Demographic Anomaly<br/>
-                            <button onclick="openChangeDataSection()">Set Data</button>
-                            <button onclick="setNotError()">Set As Not an Error</button><br>
-                        </div>
-                        <div id="mergeSection" style="display:none">
-                            Enclosed Precinct<br/>
-                            <button onclick="openMergingSection()">Open "Merge Precincts" Section</button>
-                            <button onclick="setNotError()">Set As Not an Error</button><br>
-                        </div>
-                        <div id="multiSection" style="display:none">
-                            Multi-polygon<br/>
-                            <button onclick="setNotError()">Not an Error</button>
-                        </div>
-                        <div id="gapIntersectSection" style="display:none">
-                            Precinct Gap/Intersection<br/>
-                            <button class="editBorderButton" onclick="editBorder()">Edit Border</button>
-                            <button onclick="setNotError()">Set As Not an Error</button><br>
-                        </div>
+                        <br>
+                        <label for="commentArea">Comments:</label><br>
+                        <textarea placeholder="Type your comment for the resolved error" id="commentArea" name="commentArea" rows="2" cols="20"></textarea>
+                    </div>
+                    <div id="optionSection">
+                        <h2>Options</h2>
+                        <button onclick="openChangeDataSection()" style="width:auto;">Change Data</button><br>
+                        <button id="neighborButton" onclick="openNeighborSection()">Edit Neighbors</button><br>
+                        <button id="mergeButton" onclick="openMergingSection()">Open "Merge Precincts" Section</button><br>
+                        <button  class="editBorderButton" onclick="editBorder()">Edit Border</button><br>           
+                        <br>
+                    </div>
+                    <div id="neighborSection" style="display:none">
+                        <h4>Edit Neighbors</h4>
+                        Second Selected Precinct: <div id="selectedNeighbor"></div>
+                        <button onclick="addNeighbors()">Add Neighbors</button>
+                        <button onclick="deleteNeighbors()">Delete Neighbors</button>
+                    </div>
+                    <div id="mergingSection" style="display:none">
+                        <h4>Merge Selected Precincts</h4>
+                        Second Selected Precinct: <div id="selectedMerger"></div>
+                        <button onclick="mergePrecincts()">Merge Precincts</button>
                     </div>
                     <br>
-                    <label for="commentArea">Comments:</label><br>
-                    <textarea placeholder="Type your comment for the resolved error" id="commentArea" name="commentArea" rows="2" cols="20"></textarea>
-                </div>
-                <div id="optionSection">
-                    <h2>Options</h2>
-                    <button onclick="openChangeDataSection()" style="width:auto;">Change Data</button><br>
-                    <button id="neighborButton" onclick="openNeighborSection()">Edit Neighbors</button><br>
-                    <button id="mergeButton" onclick="openMergingSection()">Open "Merge Precincts" Section</button><br>
-                    <button  class="editBorderButton" onclick="editBorder()">Edit Border</button><br>           
+                    <div style="text-align: center; padding-right: 45px"><button style="background-color:#e6ffff;color: black;padding: 5px 10px; font-size: 16px; cursor: pointer;" onclick="getAllErrors()">Load Precinct Errors</button></div>
                     <br>
                 </div>
-                <div id="neighborSection" style="display:none">
-                    <h4>Edit Neighbors</h4>
-                    Second Selected Precinct: <div id="selectedNeighbor"></div>
-                    <button onclick="addNeighbors()">Add Neighbors</button>
-                    <button onclick="deleteNeighbors()">Delete Neighbors</button>
+                <div style=" border-bottom:solid black;"></div>
+                <div class="centered4">
+                    <h2>Sources</h2>
+                    State Shapes: <div id="stateSource"></div><br/>
+                    District Shapes: <div id="districtSource"></div><br/>
+                    Precinct Shapes: <div id="precinctSource"></div><br/>
+                    Precinct Voting Data: <div id="votingSource"></div><br/>
+                    Precinct Demographic Data: <div id="demSource"></div>
                 </div>
-                <div id="mergingSection" style="display:none">
-                    <h4>Merge Selected Precincts</h4>
-                    Second Selected Precinct: <div id="selectedMerger"></div>
-                    <button onclick="mergePrecincts()">Merge Precincts</button>
+            </div>
+            <!-- right side of the page -->
+            <div class="right">
+                <div id="forMap">
                 </div>
-                <br>
-                <br>
-                <div style="text-align: center; padding-right: 45px"><button style="background-color:#e6ffff;color: black;padding: 5px 10px; font-size: 16px; cursor: pointer;" onclick="getAllErrors()">Load Precinct Errors</button></div>
-                <br>
-            </div>
-            <div style=" border-bottom:solid black;"></div>
-            <div class="centered4">
-                <h2 style="padding-top: 20px">Sources</h2>
-                State Shapes: <span id="stateSource"></span><br/>
-                District Shapes: <span id="districtSource"></span><br/>
-                Precinct Shapes: <span id="precinctSource"></span><br/>
-                Precinct Voting Data: <span id="votingSource"></span><br/>
-                Precinct Demographic Data: <span id="demSource"></span>
-            </div>
-        </div>
-        <!-- right side of the page -->
-        <div class="right">
-            <div id="forMap">
             </div>
         </div>
         
@@ -328,6 +324,29 @@ and open the template in the editor.
             </div>
         </div>
         <script>
+            function handleSplitHeight(){
+                heightPx=window.innerHeight - document.getElementById("title").clientHeight -document.getElementsByClassName("top")[0].clientHeight -26;
+                document.getElementsByClassName("splitPane")[0].style.height=heightPx+"px";
+            }
+            function toggleDropdown() {
+                document.getElementById("searchResults").classList.toggle("show");
+                document.getElementById("searchResults").style.width=document.getElementById("precinctSearch").clientWidth+"px"
+            }
+            function filterPrecinctSearch() {
+                var input, filter, a, i;
+                input = document.getElementById("precinctSearch");
+                filter = input.value.toUpperCase();
+                div = document.getElementById("searchResults");
+                a = div.getElementsByTagName("a");
+                for (i = 0; i < a.length; i++) {
+                    txtValue = a[i].textContent || a[i].innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    a[i].style.display = "";
+                    } else {
+                    a[i].style.display = "none";
+                    }
+                }
+            } 
             function getAllFixedErrors(){
                 document.getElementById("fixedErrorLog").innerHTML="";
                 let fixedErrorRequest=new XMLHttpRequest();
@@ -431,7 +450,7 @@ and open the template in the editor.
                     document.getElementById("searchResults").innerHTML="";
                     for(let i=0;i<searchData.length;i++){
                         if(searchData[i]!=undefined){
-                            let newOption=document.createElement("button");
+                            let newOption=document.createElement("a");
                             let name=searchData[i].name;
                             newOption.onclick=()=>{
                                 changeAllColor()
@@ -442,8 +461,10 @@ and open the template in the editor.
                             }
                             newOption.innerHTML=name;
                             document.getElementById("searchResults").append(newOption);
+                            /**
                             let linebreak = document.createElement("br");
                             document.getElementById("searchResults").append(linebreak);
+                            **/
                         }
                     }
                 }
@@ -699,7 +720,7 @@ and open the template in the editor.
                             statesMenu.innerHTML="<option value='State'>State</option>";
                             loadStatesForMap(stateName);
                         }
-                        document.getElementById("searchWindow").style.display="none";
+                        document.getElementById("searchWindow").style.visibility="hidden";
                         zoomOut();
                         break;
                     default:
@@ -748,7 +769,7 @@ and open the template in the editor.
                 document.getElementById("MULTI").innerHTML="";
                 document.getElementById("GAP").innerHTML="";
                 document.getElementById("INTERSECT").innerHTML="";
-                document.getElementById("searchWindow").style.display="inline";
+                document.getElementById("searchWindow").style.visibility="visible";
                 document.getElementById("dataSection").selectedIndex=0;
                 document.getElementById("year").selectedIndex=0;
                 document.getElementById("searchResults").innerHTML="";
