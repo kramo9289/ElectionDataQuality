@@ -32,6 +32,6 @@ Geojson information is injected into leaflet which allows the display of state/d
 /src/main/resources/application.properties must be changed with the link to your database along with credentials.
 Database must be populated with data, the sql file mentioned earlier does not contain all data. (That sql dmp file is too big to upload to git)
 
-#Running application
+# Running application
 Run as Java Projects with any IDE. Terminal should show all debug information relating to the project.
 Connect via browser to the link localhost:8080/ and the client side web application should appear. 
