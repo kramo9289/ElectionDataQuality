@@ -126,9 +126,18 @@ and open the template in the editor.
     height:20%;
 }
 .centered4{
-    position: relative;
+    position: fixed;
+    bottom: 0;
+    height: 10%;
     text-align: left;
     margin-left: 10px;
+
+    padding-top: 0px;
+    padding-right: 5px;
+    padding-bottom: 0px;
+    padding-left: 5px;
+
+    font-size: 10px;
 }
 .btns{
     position: relative;
@@ -143,9 +152,10 @@ and open the template in the editor.
 }
 .modal {
     display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    position: absolute; /* Stay in place */
+    z-index: 9999; /* Sit on top */
     padding-top: 100px; /* Location of the box */
+    padding-left: 25%; /*location needed to be fixed*/
     left: 0;
     top: 0;
     width: 100%; /* Full width */

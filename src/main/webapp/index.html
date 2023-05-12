@@ -130,7 +130,7 @@ and open the template in the editor.
                         </div>
                         <br>
                         <label for="commentArea">Comments:</label><br>
-                        <textarea placeholder="Type your comment for the resolved error" id="commentArea" name="commentArea" rows="2" cols="20"></textarea>
+                        <textarea placeholder="Type your comment for the resolved error" id="commentArea" name="commentArea" rows="3" cols="50"></textarea>
                     </div>
                     <div id="optionSection">
                         <h2>Options</h2>
@@ -155,14 +155,15 @@ and open the template in the editor.
                     <div style="text-align: center; padding-right: 45px"><button style="background-color:#e6ffff;color: black;padding: 5px 10px; font-size: 16px; cursor: pointer;" onclick="getAllErrors()">Load Precinct Errors</button></div>
                     <br>
                 </div>
-                <div style=" border-bottom:solid black;"></div>
+                <!-- <div style=" border-bottom:solid black;"></div>   changed divs to spans to make sources smaller and removed this border since 
+                it was disturbing the "load precinct errors" button-->
                 <div class="centered4">
                     <h2>Sources</h2>
-                    State Shapes: <div id="stateSource"></div><br/>
-                    District Shapes: <div id="districtSource"></div><br/>
-                    Precinct Shapes: <div id="precinctSource"></div><br/>
-                    Precinct Voting Data: <div id="votingSource"></div><br/>
-                    Precinct Demographic Data: <div id="demSource"></div>
+                    State Shapes: <span id="stateSource"></span><br/>
+                    District Shapes: <span id="districtSource"></span><br/>
+                    Precinct Shapes: <span id="precinctSource"></span><br/>
+                    Precinct Voting Data: <span id="votingSource"></span><br/>
+                    Precinct Demographic Data: <span id="demSource"></span>
                 </div>
             </div>
             <!-- right side of the page -->
@@ -692,6 +693,9 @@ and open the template in the editor.
                 mymap = L.map('forMap',{
                     renderer:L.canvas()
                 });
+                //resize current browser window. Leaflet reads the map container size when the map is initialized above which is not correct. 
+                //Leaflet listens to browser window resize event so rezsizing the browser window will let leaflet know of the new container size and update appropriately  
+                window.dispatchEvent(new Event('resize'));
                 zoomOut();
                 L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
                 attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors,\n\
