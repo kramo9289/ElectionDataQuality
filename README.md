@@ -4,7 +4,7 @@ Spring Boot project dedicated to visualizing and modifying precinct election dat
 # Preprocessing
 Demographic and election data was preprocessed at a precint level.
 Shape files for state, district, and precincts were converted into geojson files for leaflet, an open-source JavaScript library for interactive maps.
-//for errors at some point
+Errors were identified via established criteria. Ex. No demographic/voting data were identified and noted
 
 All data was formatted into a standard model for easier insertion into a relational database.
 An explanation on how data was preprocessed along with all source files can be found in Sources.docx.
