@@ -33,5 +33,7 @@ Geojson information is injected into leaflet which allows the display of state/d
 Database must be populated with data, the sql file mentioned earlier does not contain all data. (That sql dmp file is too big to upload to git)
 
 # Running application
-Run as Java Projects with any IDE. Terminal should show all debug information relating to the project.
-Connect via browser to the link localhost:8080/ and the client side web application should appear. 
+1) Run as Java Projects with any IDE. 
+2) Run ".\mvwn clean pacakage" on terminal in the main folder. This will create a jar file
+3) Run "java -jar .\target\myproject-0.0.1-SNAPSHOT.jar" 
+4) Connect via browser to the link localhost:8080/ and the client side web application should appear. 
