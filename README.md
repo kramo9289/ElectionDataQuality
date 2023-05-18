@@ -13,6 +13,7 @@ All associated python scripts created for preprocessing can be found in {STATE}\
 # Relational Database
 Database was created based on the standard model mentioned above.
 /schema/schema_file.sql can be used to import the schema into your local database. 
+OriginalData.zip contains all sql dump files which can be imported into any database. This has all the information that we preprocessed. 
 
 # Java server
 /src/main/java/server/ directory contains all java files used to run the server.or the management for persistence and object/relational mapping.
