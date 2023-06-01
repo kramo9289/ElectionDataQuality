@@ -25,6 +25,7 @@ public class Neighbors {
     private Precincts firstPrecinct;
     private Precincts secondPrecinct;
     
+    //java bean standard
     public Neighbors(){
     }
     

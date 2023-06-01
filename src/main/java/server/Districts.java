@@ -17,7 +17,10 @@ import javax.persistence.Table;
 @Entity
 @Table(name="districts")
 public class Districts {
-    
+    //java bean standard
+    public Districts(){
+    }
+
     private Integer id;
     private String congid;
     private String shape_geojson;

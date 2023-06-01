@@ -15,6 +15,7 @@ public class StateController {
     @Autowired
     private StateRepo service;
     
+    //only restful method needed for states
     @GetMapping("/states")
     public List<States> findAllStates() {
         return service.findAll();

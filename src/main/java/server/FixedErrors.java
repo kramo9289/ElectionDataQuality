@@ -25,6 +25,7 @@ public class FixedErrors {
     private String relevantInfo;
     private String precinctName;
     
+    //java bean standard
     public FixedErrors(){
     }
     

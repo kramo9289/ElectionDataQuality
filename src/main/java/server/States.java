@@ -21,8 +21,10 @@ public class States {
     private String state_geojson;
     private String name;
     
+    //java bean standard
     public States(){
     }
+    
     public States(Integer ogrFID, String statefp, String state_geojson, String name){
         this.ogrFID=ogrFID;
         this.statefp=statefp;

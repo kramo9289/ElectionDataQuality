@@ -25,6 +25,8 @@ public class Sources {
     private String voting;
     private String demographic;
     
+
+    //java bean standard
     public Sources(){
     }
     

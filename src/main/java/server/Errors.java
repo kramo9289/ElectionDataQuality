@@ -16,6 +16,7 @@ public class Errors {
     private String errorType;
     private Precincts precinct;
     
+    //java bean standard
     public Errors(){
     }
     

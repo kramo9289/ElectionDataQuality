@@ -28,7 +28,7 @@ public class Elections {
     private Integer other;
     private Precincts precinct;
     
-    //need empty class becuase @Entity annotation uses it
+    //need empty class becuase @Entity annotation uses it (java bean standard)
     public Elections(){
     }
     

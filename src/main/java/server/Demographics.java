@@ -13,9 +13,10 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
- *
+ * simple entity class for demographic table 
  * @author stanley and kevin
  */
+
 @Entity
 @Table(name="demographics")
 public class Demographics {
@@ -31,6 +32,7 @@ public class Demographics {
     private Integer id;
     private Precincts precinct;
     
+    //needed due to java bean standard
     public Demographics(){
     }
     

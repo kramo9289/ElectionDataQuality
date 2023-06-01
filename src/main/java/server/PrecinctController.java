@@ -196,6 +196,7 @@ public class PrecinctController {
         }      
     }
     
+    // RESTful API method for adding neighbors 
     @PostMapping("/addNeighbors/{id1}/{id2}")
     public void addNeighbor(@PathVariable String id1, @PathVariable String id2){
         Precincts firstPrecinct=precinctService.findById(Integer.parseInt(id1)).get();

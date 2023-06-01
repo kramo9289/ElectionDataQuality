@@ -28,6 +28,8 @@ public class Precincts {
     private Errors error;
     //need to add neighbors and errors like in repo
  
+
+    //java bean standard
     public Precincts(){
     }
     
